@@ -71,6 +71,11 @@ class Article < ApplicationRecord
   scope :search_by_locale, ->(locale) { where(locale: locale) if locale.present? }
   scope :search_by_author, ->(author_id) { where(author_id: author_id) if author_id.present? }
   scope :search_by_status, ->(status) { where(status: status) if status.present? }
+  scope :search_by_privacy, lambda { |privacy|
+    return all if privacy.blank?
+
+    privacy == 'private' ? where(private: true) : where(private: false)
+  }
   scope :public_articles, -> { where(private: false) }
   scope :order_by_updated_at, -> { reorder(updated_at: :desc) }
   scope :order_by_position, -> { reorder(position: :asc) }
@@ -102,7 +107,7 @@ class Article < ApplicationRecord
       :category
     ).search_by_category_slug(
       params[:category_slug]
-    ).search_by_locale(params[:locale]).search_by_author(params[:author_id]).search_by_status(params[:status])
+    ).search_by_locale(params[:locale]).search_by_author(params[:author_id]).search_by_status(params[:status]).search_by_privacy(params[:privacy])
 
     records = records.text_search(params[:query]) if params[:query].present?
     records

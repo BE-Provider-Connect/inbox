@@ -16,6 +16,7 @@ class ArticlesAPI extends PortalsAPI {
     authorId,
     categorySlug,
     sort,
+    privacy,
   }) {
     const url = getArticleSearchURL({
       pageNumber,
@@ -25,6 +26,7 @@ class ArticlesAPI extends PortalsAPI {
       authorId,
       categorySlug,
       sort,
+      privacy,
       host: this.url,
     });
 
@@ -52,13 +54,21 @@ class ArticlesAPI extends PortalsAPI {
   }
 
   createArticle({ portalSlug, articleObj }) {
-    const { content, title, authorId, categoryId, locale } = articleObj;
+    const {
+      content,
+      title,
+      authorId,
+      categoryId,
+      locale,
+      private: isPrivate,
+    } = articleObj;
     return axios.post(`${this.url}/${portalSlug}/articles`, {
       content,
       title,
       author_id: authorId,
       category_id: categoryId,
       locale,
+      private: isPrivate,
     });
   }
 

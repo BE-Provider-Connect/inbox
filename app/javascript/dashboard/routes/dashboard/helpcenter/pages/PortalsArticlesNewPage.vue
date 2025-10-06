@@ -23,7 +23,12 @@ const categories = useMapGetter('categories/allCategories');
 
 const categoryId = computed(() => categories.value[0]?.id || null);
 
-const article = ref({});
+// Get privacy from query parameter and set default
+const defaultPrivacy = route.query.privacy === 'private';
+
+const article = ref({
+  private: defaultPrivacy,
+});
 const isUpdating = ref(false);
 const isSaved = ref(false);
 
@@ -35,9 +40,10 @@ const setCategoryId = newCategoryId => {
   selectedCategoryId.value = newCategoryId;
 };
 
-const createNewArticle = async ({ title, content }) => {
+const createNewArticle = async ({ title, content, private: isPrivate }) => {
   if (title) article.value.title = title;
   if (content) article.value.content = content;
+  if (isPrivate !== undefined) article.value.private = isPrivate;
 
   if (!article.value.title || !article.value.content) return;
 
@@ -51,6 +57,7 @@ const createNewArticle = async ({ title, content }) => {
       locale: locale,
       authorId: selectedAuthorId.value || currentUserId.value,
       categoryId: selectedCategoryId.value || categoryId.value,
+      private: article.value.private,
     });
 
     useTrack(PORTALS_EVENTS.CREATE_ARTICLE, { locale });
@@ -74,9 +81,11 @@ const createNewArticle = async ({ title, content }) => {
 
 const goBackToArticles = () => {
   const { tab, categorySlug, locale } = route.params;
+  const { privacy } = route.query;
   router.push({
     name: 'portals_articles_index',
     params: { tab, categorySlug, locale },
+    query: privacy ? { privacy } : {},
   });
 };
 </script>
