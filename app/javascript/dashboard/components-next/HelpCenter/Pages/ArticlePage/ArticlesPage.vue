@@ -121,28 +121,17 @@ const handleCategoryAction = value =>
   updateRoute({ categorySlug: value === CATEGORY_ALL ? '' : value });
 
 const handlePrivacyAction = value => {
-  const currentQuery = { ...route.query };
+  const newQuery = { ...route.query };
 
   if (value === 'all') {
     // Remove privacy param when "Any visibility" is selected
-    delete currentQuery.privacy;
+    delete newQuery.privacy;
   } else {
     // Set privacy param to the selected value
-    currentQuery.privacy = value;
+    newQuery.privacy = value;
   }
 
-  // Replace entire query object
-  const { portalSlug, locale, tab, categorySlug } = route.params;
-  router.push({
-    name: 'portals_articles_index',
-    params: {
-      portalSlug,
-      locale,
-      tab: tab || '',
-      categorySlug: categorySlug || '',
-    },
-    query: currentQuery,
-  });
+  updateRoute({}, newQuery);
 };
 
 const handleLocaleAction = value => {
