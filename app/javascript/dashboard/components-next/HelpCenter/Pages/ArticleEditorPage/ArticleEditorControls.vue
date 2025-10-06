@@ -162,6 +162,11 @@ const updateMeta = meta => {
   emit('saveArticle', { meta });
 };
 
+const togglePrivacy = () => {
+  const newPrivateValue = !props.article?.private;
+  emit('saveArticle', { private: newPrivateValue });
+};
+
 onMounted(() => {
   if (categorySlugFromRoute.value && isNewArticle.value) {
     // Assign category from slug if there is one
@@ -237,6 +242,22 @@ onMounted(() => {
           @action="handleArticleAction"
         />
       </OnClickOutside>
+    </div>
+
+    <!-- Privacy Toggle -->
+    <div class="flex items-center">
+      <Button
+        :icon="article?.private ? 'i-lucide-lock' : 'i-lucide-globe'"
+        :label="
+          article?.private
+            ? t('HELP_CENTER.ARTICLE.PRIVATE')
+            : t('HELP_CENTER.ARTICLE.PUBLIC')
+        "
+        variant="ghost"
+        color="slate"
+        class="!px-2 font-normal hover:!bg-transparent hover:!text-n-slate-11"
+        @click="togglePrivacy"
+      />
     </div>
 
     <div class="w-px h-3 bg-n-weak" />

@@ -44,6 +44,10 @@ const props = defineProps({
     type: Number,
     required: true,
   },
+  isPrivate: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const emit = defineEmits(['openArticle', 'articleAction']);
@@ -174,6 +178,15 @@ const handleClick = id => {
         <span class="block text-sm whitespace-nowrap text-n-slate-11">
           {{ categoryName }}
         </span>
+        <div
+          v-if="isPrivate"
+          class="inline-flex items-center gap-1 text-n-slate-11 whitespace-nowrap"
+        >
+          <Icon icon="i-lucide-lock" class="size-4" />
+          <span class="text-sm">
+            {{ $t('HELP_CENTER.ARTICLE.PRIVATE') }}
+          </span>
+        </div>
         <div
           class="inline-flex items-center gap-1 text-n-slate-11 whitespace-nowrap"
         >

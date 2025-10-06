@@ -183,6 +183,7 @@ watch(
           :category="getCategory(element.category.id)"
           :views="element.views || 0"
           :updated-at="element.updatedAt"
+          :is-private="element.private"
           :class="{ 'cursor-grab': dragEnabled }"
           @open-article="openArticle"
           @article-action="updateArticle"

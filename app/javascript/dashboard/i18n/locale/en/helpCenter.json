@@ -87,6 +87,10 @@
         "DELETE": "Delete article"
       }
     },
+    "ARTICLE": {
+      "PUBLIC": "Public",
+      "PRIVATE": "Private"
+    },
     "ARTICLE_SEARCH_RESULT": {
       "UNCATEGORIZED": "Uncategorized",
       "SEARCH_RESULTS": "Search results for {query}",
