@@ -64,8 +64,9 @@ const shouldShowPaginationFooter = computed(() => {
   return !(isFetching.value || isSwitchingPortal.value || hasNoArticles.value);
 });
 
-const updateRoute = newParams => {
+const updateRoute = (newParams, newQuery = {}) => {
   const { portalSlug, locale, tab, categorySlug } = route.params;
+  const currentQuery = route.query;
   router.push({
     name: 'portals_articles_index',
     params: {
@@ -74,6 +75,10 @@ const updateRoute = newParams => {
       tab: newParams.tab ?? tab,
       categorySlug: newParams.categorySlug ?? categorySlug,
       ...newParams,
+    },
+    query: {
+      ...currentQuery,
+      ...newQuery,
     },
   });
 };
@@ -115,6 +120,31 @@ const handleTabChange = tab =>
 const handleCategoryAction = value =>
   updateRoute({ categorySlug: value === CATEGORY_ALL ? '' : value });
 
+const handlePrivacyAction = value => {
+  const currentQuery = { ...route.query };
+
+  if (value === 'all') {
+    // Remove privacy param when "Any visibility" is selected
+    delete currentQuery.privacy;
+  } else {
+    // Set privacy param to the selected value
+    currentQuery.privacy = value;
+  }
+
+  // Replace entire query object
+  const { portalSlug, locale, tab, categorySlug } = route.params;
+  router.push({
+    name: 'portals_articles_index',
+    params: {
+      portalSlug,
+      locale,
+      tab: tab || '',
+      categorySlug: categorySlug || '',
+    },
+    query: currentQuery,
+  });
+};
+
 const handleLocaleAction = value => {
   updateRoute({ locale: value, categorySlug: '' });
   emit('fetchPortal', value);
@@ -123,9 +153,12 @@ const handlePageChange = page => emit('pageChange', page);
 
 const navigateToNewArticlePage = () => {
   const { categorySlug, locale } = route.params;
+  const { privacy } = route.query;
+
   router.push({
     name: 'portals_articles_new',
     params: { categorySlug, locale },
+    query: privacy ? { privacy } : {},
   });
 };
 </script>
@@ -149,6 +182,7 @@ const navigateToNewArticlePage = () => {
           @tab-change="handleTabChange"
           @locale-change="handleLocaleAction"
           @category-change="handleCategoryAction"
+          @privacy-change="handlePrivacyAction"
           @new-article="navigateToNewArticlePage"
         />
         <CategoryHeaderControls

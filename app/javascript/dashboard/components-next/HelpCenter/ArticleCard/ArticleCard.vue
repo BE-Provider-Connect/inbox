@@ -179,12 +179,18 @@ const handleClick = id => {
           {{ categoryName }}
         </span>
         <div
-          v-if="isPrivate"
           class="inline-flex items-center gap-1 text-n-slate-11 whitespace-nowrap"
         >
-          <Icon icon="i-lucide-lock" class="size-4" />
+          <Icon
+            :icon="isPrivate ? 'i-lucide-lock' : 'i-lucide-globe'"
+            class="size-4"
+          />
           <span class="text-sm">
-            {{ $t('HELP_CENTER.ARTICLE.PRIVATE') }}
+            {{
+              isPrivate
+                ? $t('HELP_CENTER.ARTICLE.PRIVATE')
+                : $t('HELP_CENTER.ARTICLE.PUBLIC')
+            }}
           </span>
         </div>
         <div

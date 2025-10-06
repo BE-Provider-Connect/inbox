@@ -530,6 +530,9 @@
         "CATEGORY": {
           "ALL": "All categories"
         },
+        "PRIVACY": {
+          "ALL": "Any visibility"
+        },
         "LOCALE": {
           "ALL": "All locales"
         },

@@ -75,6 +75,7 @@ export const getArticleSearchURL = ({
   categorySlug,
   sort,
   query,
+  privacy,
 }) => {
   const queryParams = new URLSearchParams({});
 
@@ -86,6 +87,7 @@ export const getArticleSearchURL = ({
     category_slug: categorySlug,
     sort,
     query,
+    privacy,
   };
 
   Object.entries(params).forEach(([key, value]) => {

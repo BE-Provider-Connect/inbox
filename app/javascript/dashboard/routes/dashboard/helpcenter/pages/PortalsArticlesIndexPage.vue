@@ -66,6 +66,7 @@ const fetchArticles = ({ pageNumber: pageNumberParam } = {}) => {
     status: status.value,
     authorId: author.value,
     categorySlug: selectedCategorySlug.value,
+    privacy: route.query.privacy,
   });
 };
 
@@ -89,7 +90,7 @@ onMounted(() => {
 });
 
 watch(
-  () => route.params,
+  () => ({ ...route.params, ...route.query }),
   () => {
     pageNumber.value = 1;
     fetchArticles();

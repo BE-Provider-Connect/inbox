@@ -51,6 +51,31 @@ RSpec.describe Article do
     end
   end
 
+  describe '.search_by_privacy scope' do
+    let!(:public_article) { create(:article, portal_id: portal_1.id, category_id: category_1.id, author_id: user.id, private: false) }
+    let!(:private_article) { create(:article, portal_id: portal_1.id, category_id: category_1.id, author_id: user.id, private: true) }
+
+    it 'filters by public articles when privacy is public' do
+      articles = described_class.search_by_privacy('public')
+      expect(articles).to include(public_article)
+      expect(articles).not_to include(private_article)
+    end
+
+    it 'filters by private articles when privacy is private' do
+      articles = described_class.search_by_privacy('private')
+      expect(articles).to include(private_article)
+      expect(articles).not_to include(public_article)
+    end
+
+    it 'returns all articles when privacy is nil or blank' do
+      articles = described_class.search_by_privacy(nil)
+      expect(articles).to include(public_article, private_article)
+
+      articles = described_class.search_by_privacy('')
+      expect(articles).to include(public_article, private_article)
+    end
+  end
+
   # This validation happens in ApplicationRecord
   describe 'length validations' do
     let(:article) do
