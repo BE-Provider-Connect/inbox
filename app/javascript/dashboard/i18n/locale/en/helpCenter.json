@@ -87,6 +87,10 @@
         "DELETE": "Delete article"
       }
     },
+    "ARTICLE": {
+      "PUBLIC": "Public",
+      "PRIVATE": "Private"
+    },
     "ARTICLE_SEARCH_RESULT": {
       "UNCATEGORIZED": "Uncategorized",
       "SEARCH_RESULTS": "Search results for {query}",
@@ -525,6 +529,9 @@
         },
         "CATEGORY": {
           "ALL": "All categories"
+        },
+        "PRIVACY": {
+          "ALL": "Any visibility"
         },
         "LOCALE": {
           "ALL": "All locales"

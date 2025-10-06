@@ -63,6 +63,28 @@ RSpec.describe 'Api::V1::Accounts::Articles', type: :request do
         expect(json_response['payload']['position']).to be(3)
       end
 
+      it 'creates article with private flag' do
+        article_params = {
+          article: {
+            category_id: category.id,
+            description: 'test description',
+            title: 'Private Article',
+            slug: 'private-article',
+            content: 'This is private content.',
+            status: :published,
+            author_id: agent.id,
+            private: true
+          }
+        }
+        post "/api/v1/accounts/#{account.id}/portals/#{portal.slug}/articles",
+             params: article_params,
+             headers: admin.create_new_auth_token
+        expect(response).to have_http_status(:success)
+        json_response = response.parsed_body
+        expect(json_response['payload']['title']).to eql('Private Article')
+        expect(json_response['payload']['private']).to be true
+      end
+
       it 'associate to the root article' do
         root_article = create(:article, category: category, slug: 'root-article', portal: portal, account_id: account.id, author_id: agent.id,
                                         associated_article_id: nil)
@@ -149,6 +171,26 @@ RSpec.describe 'Api::V1::Accounts::Articles', type: :request do
         expect(json_response['payload']['title']).to eql(article_params[:article][:title])
         expect(json_response['payload']['status']).to eql(article_params[:article][:status])
         expect(json_response['payload']['position']).to eql(article_params[:article][:position])
+      end
+
+      it 'updates article private flag' do
+        expect(article.private).to be false
+
+        article_params = {
+          article: {
+            private: true
+          }
+        }
+
+        put "/api/v1/accounts/#{account.id}/portals/#{portal.slug}/articles/#{article.id}",
+            params: article_params,
+            headers: admin.create_new_auth_token
+        expect(response).to have_http_status(:success)
+        json_response = response.parsed_body
+        expect(json_response['payload']['private']).to be true
+
+        # Verify it's actually updated in the database
+        expect(article.reload.private).to be true
       end
     end
   end
@@ -237,6 +279,29 @@ RSpec.describe 'Api::V1::Accounts::Articles', type: :request do
         expect(json_response['meta']['all_articles_count']).to be 2
         expect(json_response['meta']['articles_count']).to be 1
         expect(json_response['meta']['mine_articles_count']).to be 0
+      end
+
+      it 'includes both private and public articles for admin' do
+        public_article = create(:article, account_id: account.id, portal: portal, category: category,
+                                          author_id: agent.id, private: false)
+        private_article = create(:article, account_id: account.id, portal: portal, category: category,
+                                           author_id: agent.id, private: true)
+
+        get "/api/v1/accounts/#{account.id}/portals/#{portal.slug}/articles",
+            headers: admin.create_new_auth_token,
+            params: {}
+        expect(response).to have_http_status(:success)
+        json_response = response.parsed_body
+
+        # Should include both the original article (which is public) and the new articles
+        expect(json_response['payload'].count).to be 3
+
+        article_ids = json_response['payload'].map { |a| a['id'] }
+        expect(article_ids).to include(article.id, public_article.id, private_article.id)
+
+        # Check that private flag is included in the response
+        private_response = json_response['payload'].find { |a| a['id'] == private_article.id }
+        expect(private_response['private']).to be true
       end
     end
 

@@ -69,14 +69,14 @@ class Api::V1::Accounts::ArticlesController < Api::V1::Accounts::BaseController
   def article_params
     params.require(:article).permit(
       :title, :slug, :position, :content, :description, :category_id, :author_id, :associated_article_id, :status,
-      :locale, meta: [:title,
-                      :description,
-                      { tags: [] }]
+      :locale, :private, meta: [:title,
+                                :description,
+                                { tags: [] }]
     )
   end
 
   def list_params
-    params.permit(:locale, :query, :page, :category_slug, :status, :author_id)
+    params.permit(:locale, :query, :page, :category_slug, :status, :author_id, :privacy)
   end
 
   def set_current_page

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_09_17_012759) do
+ActiveRecord::Schema[7.1].define(version: 2025_10_06_100732) do
   # These extensions should be enabled to support this database
   enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
@@ -184,10 +184,12 @@ ActiveRecord::Schema[7.1].define(version: 2025_09_17_012759) do
     t.string "slug", null: false
     t.integer "position"
     t.string "locale", default: "en", null: false
+    t.boolean "private", default: false, null: false
     t.index ["account_id"], name: "index_articles_on_account_id"
     t.index ["associated_article_id"], name: "index_articles_on_associated_article_id"
     t.index ["author_id"], name: "index_articles_on_author_id"
     t.index ["portal_id"], name: "index_articles_on_portal_id"
+    t.index ["private"], name: "index_articles_on_private"
     t.index ["slug"], name: "index_articles_on_slug", unique: true
     t.index ["status"], name: "index_articles_on_status"
     t.index ["views"], name: "index_articles_on_views"

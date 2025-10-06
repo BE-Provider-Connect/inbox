@@ -18,6 +18,64 @@ RSpec.describe Article do
     it { is_expected.to belong_to(:author) }
   end
 
+  describe 'private field' do
+    let(:article) { create(:article, portal_id: portal_1.id, category_id: category_1.id, author_id: user.id) }
+
+    it 'defaults to false' do
+      expect(article.private).to be false
+    end
+
+    it 'can be set to true' do
+      article.update!(private: true)
+      expect(article.reload.private).to be true
+    end
+  end
+
+  describe '.public_articles scope' do
+    let!(:public_article) { create(:article, portal_id: portal_1.id, category_id: category_1.id, author_id: user.id, private: false) }
+    let!(:private_article) { create(:article, portal_id: portal_1.id, category_id: category_1.id, author_id: user.id, private: true) }
+
+    it 'returns only non-private articles' do
+      public_articles = described_class.public_articles
+      expect(public_articles).to include(public_article)
+      expect(public_articles).not_to include(private_article)
+    end
+
+    it 'works with other scopes' do
+      public_article.update!(status: :published)
+      private_article.update!(status: :published)
+
+      published_public = described_class.published.public_articles
+      expect(published_public).to include(public_article)
+      expect(published_public).not_to include(private_article)
+    end
+  end
+
+  describe '.search_by_privacy scope' do
+    let!(:public_article) { create(:article, portal_id: portal_1.id, category_id: category_1.id, author_id: user.id, private: false) }
+    let!(:private_article) { create(:article, portal_id: portal_1.id, category_id: category_1.id, author_id: user.id, private: true) }
+
+    it 'filters by public articles when privacy is public' do
+      articles = described_class.search_by_privacy('public')
+      expect(articles).to include(public_article)
+      expect(articles).not_to include(private_article)
+    end
+
+    it 'filters by private articles when privacy is private' do
+      articles = described_class.search_by_privacy('private')
+      expect(articles).to include(private_article)
+      expect(articles).not_to include(public_article)
+    end
+
+    it 'returns all articles when privacy is nil or blank' do
+      articles = described_class.search_by_privacy(nil)
+      expect(articles).to include(public_article, private_article)
+
+      articles = described_class.search_by_privacy('')
+      expect(articles).to include(public_article, private_article)
+    end
+  end
+
   # This validation happens in ApplicationRecord
   describe 'length validations' do
     let(:article) do

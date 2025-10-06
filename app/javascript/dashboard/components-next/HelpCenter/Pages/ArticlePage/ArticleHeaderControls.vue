@@ -33,6 +33,7 @@ const emit = defineEmits([
   'tabChange',
   'localeChange',
   'categoryChange',
+  'privacyChange',
   'newArticle',
 ]);
 
@@ -42,6 +43,7 @@ const { updateUISettings } = useUISettings();
 
 const isCategoryMenuOpen = ref(false);
 const isLocaleMenuOpen = ref(false);
+const isPrivacyMenuOpen = ref(false);
 
 const countKey = tab => {
   if (tab.value === 'all') {
@@ -113,6 +115,37 @@ const localeMenuItems = computed(() => {
   }));
 });
 
+const activePrivacyFilter = computed(() => {
+  const privacyParam = route.query.privacy;
+  if (privacyParam === 'private') {
+    return t('HELP_CENTER.ARTICLE.PRIVATE');
+  }
+  if (privacyParam === 'public') {
+    return t('HELP_CENTER.ARTICLE.PUBLIC');
+  }
+  return t('HELP_CENTER.ARTICLES_PAGE.ARTICLES_HEADER.PRIVACY.ALL');
+});
+
+const privacyMenuItems = computed(() => {
+  return [
+    {
+      label: t('HELP_CENTER.ARTICLES_PAGE.ARTICLES_HEADER.PRIVACY.ALL'),
+      value: 'all',
+      action: 'filter',
+    },
+    {
+      label: t('HELP_CENTER.ARTICLE.PUBLIC'),
+      value: 'public',
+      action: 'filter',
+    },
+    {
+      label: t('HELP_CENTER.ARTICLE.PRIVATE'),
+      value: 'private',
+      action: 'filter',
+    },
+  ];
+});
+
 const handleLocaleAction = ({ value }) => {
   emit('localeChange', value);
   isLocaleMenuOpen.value = false;
@@ -124,6 +157,11 @@ const handleLocaleAction = ({ value }) => {
 const handleCategoryAction = ({ value }) => {
   emit('categoryChange', value);
   isCategoryMenuOpen.value = false;
+};
+
+const handlePrivacyAction = ({ value }) => {
+  emit('privacyChange', value);
+  isPrivacyMenuOpen.value = false;
 };
 
 const handleNewArticle = () => {
@@ -182,6 +220,25 @@ const handleTabChange = value => {
               show-search
               class="left-0 w-48 mt-2 overflow-y-auto xl:right-0 top-full max-h-60"
               @action="handleCategoryAction"
+            />
+          </OnClickOutside>
+        </div>
+        <div class="relative group">
+          <OnClickOutside @trigger="isPrivacyMenuOpen = false">
+            <Button
+              :label="activePrivacyFilter"
+              icon="i-lucide-chevron-down"
+              size="sm"
+              color="slate"
+              trailing-icon
+              @click="isPrivacyMenuOpen = !isPrivacyMenuOpen"
+            />
+
+            <DropdownMenu
+              v-if="isPrivacyMenuOpen"
+              :menu-items="privacyMenuItems"
+              class="left-0 w-40 mt-2 overflow-y-auto xl:right-0 top-full max-h-60"
+              @action="handlePrivacyAction"
             />
           </OnClickOutside>
         </div>
