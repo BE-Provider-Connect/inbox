@@ -36,7 +36,7 @@ RSpec.describe Article do
     let!(:private_article) { create(:article, portal_id: portal_1.id, category_id: category_1.id, author_id: user.id, private: true) }
 
     it 'returns only non-private articles' do
-      public_articles = Article.public_articles
+      public_articles = described_class.public_articles
       expect(public_articles).to include(public_article)
       expect(public_articles).not_to include(private_article)
     end
@@ -45,7 +45,7 @@ RSpec.describe Article do
       public_article.update!(status: :published)
       private_article.update!(status: :published)
 
-      published_public = Article.published.public_articles
+      published_public = described_class.published.public_articles
       expect(published_public).to include(public_article)
       expect(published_public).not_to include(private_article)
     end
