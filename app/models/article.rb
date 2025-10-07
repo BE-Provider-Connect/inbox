@@ -66,6 +66,7 @@ class Article < ApplicationRecord
   validates :author_id, presence: true
   validates :title, presence: true
   validates :content, presence: true
+
   validate :validate_ai_agent_scope_entities
 
   # ensuring that the position is always set correctly
@@ -226,10 +227,17 @@ class Article < ApplicationRecord
   def validate_ai_agent_scope_entities
     return unless ai_agent_enabled
 
-    if ai_agent_scope == 'community_group' && community_groups.empty?
-      errors.add(:community_groups, 'must have at least one community group when scope is community_group')
-    elsif ai_agent_scope == 'community' && communities.empty?
-      errors.add(:communities, 'must have at least one community when scope is community')
+    # If AI Agent is enabled, scope must be present
+    if ai_agent_scope.blank?
+      errors.add(:ai_agent_scope, 'must be selected when AI Agent is enabled')
+      return
+    end
+
+    case ai_agent_scope
+    when 'community_group'
+      errors.add(:community_groups, 'must have at least one community group when scope is community_group') if community_group_ids.blank?
+    when 'community'
+      errors.add(:communities, 'must have at least one community when scope is community') if community_ids.blank?
     end
   end
 end

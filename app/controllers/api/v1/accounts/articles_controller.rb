@@ -30,7 +30,7 @@ class Api::V1::Accounts::ArticlesController < Api::V1::Accounts::BaseController
 
   def update
     ActiveRecord::Base.transaction do
-      clear_ai_agent_associations_on_scope_change if params[:article].present?
+      clear_ai_agent_associations_on_scope_change
       @article.update!(article_params) if params[:article].present?
     end
     render json: { error: @article.errors.messages }, status: :unprocessable_entity and return unless @article.valid?

@@ -278,6 +278,13 @@ RSpec.describe Article do
     end
 
     describe 'ai_agent_scope validation' do
+      it 'is invalid when AI Agent is enabled without a scope' do
+        article.ai_agent_enabled = true
+        article.ai_agent_scope = nil
+        expect(article).not_to be_valid
+        expect(article.errors[:ai_agent_scope]).to include('must be selected when AI Agent is enabled')
+      end
+
       it 'is valid with organization scope and no entities' do
         article.update(ai_agent_enabled: true, ai_agent_scope: 'organization')
         expect(article).to be_valid
