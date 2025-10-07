@@ -82,7 +82,7 @@ class Api::V1::Accounts::ArticlesController < Api::V1::Accounts::BaseController
   end
 
   def clear_ai_agent_associations_on_scope_change
-    return unless params.dig(:article, :ai_agent_scope).present?
+    return if params.dig(:article, :ai_agent_scope).blank?
 
     case params[:article][:ai_agent_scope]
     when 'organization'
