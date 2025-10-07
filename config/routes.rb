@@ -316,6 +316,9 @@ Rails.application.routes.draw do
             end
           end
 
+          resources :community_groups, only: [:index, :show]
+          resources :communities, only: [:index, :show]
+
           resources :upload, only: [:create]
         end
       end

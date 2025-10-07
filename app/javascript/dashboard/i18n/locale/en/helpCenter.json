@@ -89,7 +89,17 @@
     },
     "ARTICLE": {
       "PUBLIC": "Public",
-      "PRIVATE": "Private"
+      "PRIVATE": "Private",
+      "AI_AGENT": {
+        "TITLE": "AI Agent",
+        "ENABLE_LABEL": "Enable AI Agent",
+        "SCOPE_LABEL": "Scope",
+        "SELECT_SCOPE": "Select scope",
+        "SELECT_COMMUNITY_GROUP": "Select Community Group",
+        "SELECT_COMMUNITY": "Select Community",
+        "NO_COMMUNITY_GROUPS": "No community groups available",
+        "NO_COMMUNITIES": "No communities available"
+      }
     },
     "ARTICLE_SEARCH_RESULT": {
       "UNCATEGORIZED": "Uncategorized",

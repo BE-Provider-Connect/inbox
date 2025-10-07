@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_10_06_100732) do
+ActiveRecord::Schema[7.1].define(version: 2025_10_07_112758) do
   # These extensions should be enabled to support this database
   enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
@@ -157,6 +157,26 @@ ActiveRecord::Schema[7.1].define(version: 2025_10_06_100732) do
     t.index ["sla_policy_id"], name: "index_applied_slas_on_sla_policy_id"
   end
 
+  create_table "article_communities", force: :cascade do |t|
+    t.bigint "article_id", null: false
+    t.bigint "community_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["article_id", "community_id"], name: "idx_article_communities_unique", unique: true
+    t.index ["article_id"], name: "index_article_communities_on_article_id"
+    t.index ["community_id"], name: "index_article_communities_on_community_id"
+  end
+
+  create_table "article_community_groups", force: :cascade do |t|
+    t.bigint "article_id", null: false
+    t.bigint "community_group_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["article_id", "community_group_id"], name: "idx_article_community_groups_unique", unique: true
+    t.index ["article_id"], name: "index_article_community_groups_on_article_id"
+    t.index ["community_group_id"], name: "index_article_community_groups_on_community_group_id"
+  end
+
   create_table "article_embeddings", force: :cascade do |t|
     t.bigint "article_id", null: false
     t.text "term", null: false
@@ -185,7 +205,12 @@ ActiveRecord::Schema[7.1].define(version: 2025_10_06_100732) do
     t.integer "position"
     t.string "locale", default: "en", null: false
     t.boolean "private", default: false, null: false
+    t.boolean "ai_agent_enabled", default: false, null: false
+    t.integer "ai_agent_scope"
     t.index ["account_id"], name: "index_articles_on_account_id"
+    t.index ["ai_agent_enabled", "ai_agent_scope"], name: "index_articles_on_ai_agent_enabled_and_ai_agent_scope"
+    t.index ["ai_agent_enabled"], name: "index_articles_on_ai_agent_enabled"
+    t.index ["ai_agent_scope"], name: "index_articles_on_ai_agent_scope"
     t.index ["associated_article_id"], name: "index_articles_on_associated_article_id"
     t.index ["author_id"], name: "index_articles_on_author_id"
     t.index ["portal_id"], name: "index_articles_on_portal_id"
@@ -551,6 +576,26 @@ ActiveRecord::Schema[7.1].define(version: 2025_10_06_100732) do
     t.jsonb "message_templates", default: {}
     t.datetime "message_templates_last_updated", precision: nil
     t.index ["phone_number"], name: "index_channel_whatsapp_on_phone_number", unique: true
+  end
+
+  create_table "communities", force: :cascade do |t|
+    t.string "external_id", null: false
+    t.string "name", null: false
+    t.bigint "community_group_id"
+    t.datetime "synced_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["community_group_id"], name: "index_communities_on_community_group_id"
+    t.index ["external_id"], name: "index_communities_on_external_id", unique: true
+  end
+
+  create_table "community_groups", force: :cascade do |t|
+    t.string "external_id", null: false
+    t.string "name", null: false
+    t.datetime "synced_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["external_id"], name: "index_community_groups_on_external_id", unique: true
   end
 
   create_table "contact_inboxes", force: :cascade do |t|
@@ -1219,6 +1264,11 @@ ActiveRecord::Schema[7.1].define(version: 2025_10_06_100732) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "article_communities", "articles"
+  add_foreign_key "article_communities", "communities"
+  add_foreign_key "article_community_groups", "articles"
+  add_foreign_key "article_community_groups", "community_groups"
+  add_foreign_key "communities", "community_groups"
   add_foreign_key "inboxes", "portals"
   create_trigger("accounts_after_insert_row_tr", :generated => true, :compatibility => 1).
       on("accounts").
