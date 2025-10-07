@@ -16,6 +16,10 @@ RSpec.describe Article do
   describe 'associations' do
     it { is_expected.to belong_to(:account) }
     it { is_expected.to belong_to(:author) }
+    it { is_expected.to have_many(:article_community_groups).dependent(:destroy) }
+    it { is_expected.to have_many(:community_groups).through(:article_community_groups) }
+    it { is_expected.to have_many(:article_communities).dependent(:destroy) }
+    it { is_expected.to have_many(:communities).through(:article_communities) }
   end
 
   describe 'private field' do
@@ -245,6 +249,109 @@ RSpec.describe Article do
       TEXT
 
       expect(article.to_llm_text).to eq(expected_output)
+    end
+  end
+
+  describe 'AI agent functionality' do
+    let(:article) { create(:article, portal_id: portal_1.id, category_id: category_1.id, author_id: user.id) }
+    let!(:community_group) { create(:community_group) }
+    let!(:community) { create(:community, community_group: community_group) }
+
+    describe 'ai_agent_enabled field' do
+      it 'defaults to false' do
+        expect(article.ai_agent_enabled).to be false
+      end
+    end
+
+    describe 'many-to-many associations' do
+      it 'can belong to multiple community groups' do
+        groups = create_list(:community_group, 3)
+        article.community_groups = groups
+        expect(article.community_groups.count).to eq(3)
+      end
+
+      it 'can belong to multiple communities' do
+        communities = create_list(:community, 3)
+        article.communities = communities
+        expect(article.communities.count).to eq(3)
+      end
+    end
+
+    describe 'ai_agent_scope validation' do
+      it 'is valid with organization scope and no entities' do
+        article.update(ai_agent_enabled: true, ai_agent_scope: 'organization')
+        expect(article).to be_valid
+      end
+
+      it 'is invalid with community_group scope and no groups' do
+        article.ai_agent_enabled = true
+        article.ai_agent_scope = 'community_group'
+        expect(article).not_to be_valid
+        expect(article.errors[:community_groups]).to include('must have at least one community group when scope is community_group')
+      end
+
+      it 'is valid with community_group scope and groups assigned' do
+        article.ai_agent_enabled = true
+        article.ai_agent_scope = 'community_group'
+        article.community_groups << community_group
+        expect(article).to be_valid
+      end
+
+      it 'is invalid with community scope and no communities' do
+        article.ai_agent_enabled = true
+        article.ai_agent_scope = 'community'
+        expect(article).not_to be_valid
+        expect(article.errors[:communities]).to include('must have at least one community when scope is community')
+      end
+
+      it 'is valid with community scope and communities assigned' do
+        article.ai_agent_enabled = true
+        article.ai_agent_scope = 'community'
+        article.communities << community
+        expect(article).to be_valid
+      end
+    end
+
+    describe 'scopes' do
+      let!(:ai_article) do
+        create(:article, portal_id: portal_1.id, category_id: category_1.id, author_id: user.id, ai_agent_enabled: true,
+                         ai_agent_scope: 'organization')
+      end
+      let!(:regular_article) { create(:article, portal_id: portal_1.id, category_id: category_1.id, author_id: user.id, ai_agent_enabled: false) }
+
+      it 'filters by ai_enabled' do
+        articles = described_class.ai_enabled
+        expect(articles).to include(ai_article)
+        expect(articles).not_to include(regular_article)
+      end
+
+      it 'filters by ai_agent_scope' do
+        group_article = create(:article, portal_id: portal_1.id, category_id: category_1.id, author_id: user.id)
+        group_article.community_groups << community_group
+        group_article.update!(ai_agent_enabled: true, ai_agent_scope: 'community_group')
+
+        articles = described_class.by_ai_scope('community_group')
+        expect(articles).to include(group_article)
+        expect(articles).not_to include(ai_article)
+      end
+
+      it 'filters by community_group' do
+        group_article = create(:article, portal_id: portal_1.id, category_id: category_1.id, author_id: user.id)
+        group_article.community_groups << community_group
+
+        articles = described_class.for_community_group(community_group.id)
+        expect(articles).to include(group_article)
+        expect(articles).not_to include(ai_article)
+      end
+
+      it 'filters by community' do
+        community_article = create(:article, portal_id: portal_1.id, category_id: category_1.id, author_id: user.id)
+        community_article.communities << community
+
+        articles = described_class.for_community(community.id)
+        expect(articles).to include(community_article)
+        expect(articles).not_to include(ai_article)
+      end
     end
   end
 end

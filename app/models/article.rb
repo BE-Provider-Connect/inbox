@@ -51,6 +51,13 @@ class Article < ApplicationRecord
   belongs_to :portal
   belongs_to :author, class_name: 'User', inverse_of: :articles
 
+  # AI Agent associations
+  has_many :article_community_groups, dependent: :destroy
+  has_many :community_groups, through: :article_community_groups
+
+  has_many :article_communities, dependent: :destroy
+  has_many :communities, through: :article_communities
+
   before_validation :ensure_account_id
   before_validation :ensure_article_slug
   before_validation :ensure_locale_in_article
@@ -59,12 +66,14 @@ class Article < ApplicationRecord
   validates :author_id, presence: true
   validates :title, presence: true
   validates :content, presence: true
+  validate :validate_ai_agent_scope_entities
 
   # ensuring that the position is always set correctly
   before_create :add_position_to_article
   after_save :category_id_changed_action, if: :saved_change_to_category_id?
 
   enum status: { draft: 0, published: 1, archived: 2 }
+  enum ai_agent_scope: { organization: 0, community_group: 1, community: 2 }
 
   scope :search_by_category_slug, ->(category_slug) { where(categories: { slug: category_slug }) if category_slug.present? }
   scope :search_by_category_locale, ->(locale) { where(categories: { locale: locale }) if locale.present? }
@@ -80,6 +89,22 @@ class Article < ApplicationRecord
   scope :order_by_updated_at, -> { reorder(updated_at: :desc) }
   scope :order_by_position, -> { reorder(position: :asc) }
   scope :order_by_views, -> { reorder(views: :desc) }
+
+  # AI Agent scopes
+  scope :ai_enabled, -> { where(ai_agent_enabled: true) }
+  scope :by_ai_scope, ->(scope) { where(ai_agent_scope: scope) if scope.present? }
+  scope :for_community_group, ->(group_id) { joins(:community_groups).where(community_groups: { id: group_id }) }
+  scope :for_community, ->(community_id) { joins(:communities).where(communities: { id: community_id }) }
+  scope :for_any_community_groups, lambda { |group_ids|
+    joins(:article_community_groups)
+      .where(article_community_groups: { community_group_id: group_ids })
+      .distinct
+  }
+  scope :for_any_communities, lambda { |community_ids|
+    joins(:article_communities)
+      .where(article_communities: { community_id: community_ids })
+      .distinct
+  }
 
   # TODO: if text search slows down https://www.postgresql.org/docs/current/textsearch-features.html#TEXTSEARCH-UPDATE-TRIGGERS
   # - the A, B and C are for weightage. See: https://github.com/Casecommons/pg_search#weighting
@@ -196,6 +221,16 @@ class Article < ApplicationRecord
 
   def ensure_article_slug
     self.slug ||= "#{Time.now.utc.to_i}-#{title.underscore.parameterize(separator: '-')}" if title.present?
+  end
+
+  def validate_ai_agent_scope_entities
+    return unless ai_agent_enabled
+
+    if ai_agent_scope == 'community_group' && community_groups.empty?
+      errors.add(:community_groups, 'must have at least one community group when scope is community_group')
+    elsif ai_agent_scope == 'community' && communities.empty?
+      errors.add(:communities, 'must have at least one community when scope is community')
+    end
   end
 end
 Article.include_mod_with('Concerns::Article')

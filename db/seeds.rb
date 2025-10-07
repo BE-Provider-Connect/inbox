@@ -94,4 +94,7 @@ unless Rails.env.production?
   Seeders::MessageSeeder.create_sample_csat_collect_message conversation
 
   CannedResponse.create!(account: account, short_code: 'start', content: 'Hello welcome to chatwoot.')
+
+  # Community groups and communities
+  Seeders::CommunitySeeder.seed_community_groups_and_communities
 end

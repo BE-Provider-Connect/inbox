@@ -19,6 +19,22 @@ end
 
 json.views article.views
 
+json.ai_agent_enabled article.ai_agent_enabled
+json.ai_agent_scope article.ai_agent_scope
+
+json.community_groups article.community_groups do |community_group|
+  json.id community_group.id
+  json.name community_group.name
+  json.external_id community_group.external_id
+end
+
+json.communities article.communities do |community|
+  json.id community.id
+  json.name community.name
+  json.external_id community.external_id
+  json.community_group_id community.community_group_id
+end
+
 if article.author.present?
   json.author do
     json.partial! 'api/v1/models/agent', formats: [:json], resource: article.author
