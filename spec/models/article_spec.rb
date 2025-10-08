@@ -228,6 +228,76 @@ RSpec.describe Article do
         expect(article.slug).to include('the-awesome-article-1')
       end
     end
+
+    context 'when filtering by AI configuration' do
+      let!(:ai_enabled_article) do
+        create(:article, category_id: category_1.id, portal_id: portal_1.id, author_id: user.id,
+                         ai_agent_enabled: true, ai_agent_scope: 'organization')
+      end
+      let!(:ai_disabled_article) do
+        create(:article, category_id: category_1.id, portal_id: portal_1.id, author_id: user.id,
+                         ai_agent_enabled: false)
+      end
+      let!(:community_group) { create(:community_group) }
+      let!(:community) { create(:community) }
+      let!(:ai_group_article) do
+        article = create(:article, category_id: category_1.id, portal_id: portal_1.id, author_id: user.id)
+        article.community_groups << community_group
+        article.update!(ai_agent_enabled: true, ai_agent_scope: 'community_group')
+        article
+      end
+      let!(:ai_community_article) do
+        article = create(:article, category_id: category_1.id, portal_id: portal_1.id, author_id: user.id)
+        article.communities << community
+        article.update!(ai_agent_enabled: true, ai_agent_scope: 'community')
+        article
+      end
+
+      it 'filters by ai_enabled parameter' do
+        params = { ai_enabled: 'true' }
+        records = portal_1.articles.search(params)
+        expect(records).to include(ai_enabled_article, ai_group_article, ai_community_article)
+        expect(records).not_to include(ai_disabled_article)
+
+        params = { ai_enabled: 'false' }
+        records = portal_1.articles.search(params)
+        expect(records).to include(ai_disabled_article)
+        expect(records).not_to include(ai_enabled_article, ai_group_article, ai_community_article)
+      end
+
+      it 'filters by ai_scope parameter' do
+        params = { ai_scope: 'organization' }
+        records = portal_1.articles.search(params)
+        expect(records).to include(ai_enabled_article)
+        expect(records).not_to include(ai_group_article, ai_community_article)
+
+        params = { ai_scope: 'community_group' }
+        records = portal_1.articles.search(params)
+        expect(records).to include(ai_group_article)
+        expect(records).not_to include(ai_enabled_article, ai_community_article)
+      end
+
+      it 'filters by community_group_ids parameter' do
+        params = { community_group_ids: [community_group.id] }
+        records = portal_1.articles.search(params)
+        expect(records).to include(ai_group_article)
+        expect(records).not_to include(ai_enabled_article, ai_community_article)
+      end
+
+      it 'filters by community_ids parameter' do
+        params = { community_ids: [community.id] }
+        records = portal_1.articles.search(params)
+        expect(records).to include(ai_community_article)
+        expect(records).not_to include(ai_enabled_article, ai_group_article)
+      end
+
+      it 'combines AI filters with other filters' do
+        params = { ai_enabled: 'true', ai_scope: 'organization', locale: 'en' }
+        records = portal_1.articles.search(params)
+        expect(records).to include(ai_enabled_article)
+        expect(records).not_to include(ai_group_article, ai_community_article, ai_disabled_article)
+      end
+    end
   end
 
   describe '#to_llm_text' do
@@ -326,36 +396,40 @@ RSpec.describe Article do
       end
       let!(:regular_article) { create(:article, portal_id: portal_1.id, category_id: category_1.id, author_id: user.id, ai_agent_enabled: false) }
 
-      it 'filters by ai_enabled' do
-        articles = described_class.ai_enabled
+      it 'filters by ai_enabled with search_by_ai_enabled' do
+        articles = described_class.search_by_ai_enabled('true')
         expect(articles).to include(ai_article)
         expect(articles).not_to include(regular_article)
+
+        articles = described_class.search_by_ai_enabled('false')
+        expect(articles).not_to include(ai_article)
+        expect(articles).to include(regular_article)
       end
 
-      it 'filters by ai_agent_scope' do
+      it 'filters by ai_agent_scope with search_by_ai_scope' do
         group_article = create(:article, portal_id: portal_1.id, category_id: category_1.id, author_id: user.id)
         group_article.community_groups << community_group
         group_article.update!(ai_agent_enabled: true, ai_agent_scope: 'community_group')
 
-        articles = described_class.by_ai_scope('community_group')
+        articles = described_class.search_by_ai_scope('community_group')
         expect(articles).to include(group_article)
         expect(articles).not_to include(ai_article)
       end
 
-      it 'filters by community_group' do
+      it 'filters by community_groups with search_by_community_groups' do
         group_article = create(:article, portal_id: portal_1.id, category_id: category_1.id, author_id: user.id)
         group_article.community_groups << community_group
 
-        articles = described_class.for_community_group(community_group.id)
+        articles = described_class.search_by_community_groups([community_group.id])
         expect(articles).to include(group_article)
         expect(articles).not_to include(ai_article)
       end
 
-      it 'filters by community' do
+      it 'filters by communities with search_by_communities' do
         community_article = create(:article, portal_id: portal_1.id, category_id: category_1.id, author_id: user.id)
         community_article.communities << community
 
-        articles = described_class.for_community(community.id)
+        articles = described_class.search_by_communities([community.id])
         expect(articles).to include(community_article)
         expect(articles).not_to include(ai_article)
       end

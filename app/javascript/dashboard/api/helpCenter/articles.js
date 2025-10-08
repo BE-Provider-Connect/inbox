@@ -17,6 +17,10 @@ class ArticlesAPI extends PortalsAPI {
     categorySlug,
     sort,
     privacy,
+    aiEnabled,
+    aiScope,
+    communityGroupIds,
+    communityIds,
   }) {
     const url = getArticleSearchURL({
       pageNumber,
@@ -27,6 +31,10 @@ class ArticlesAPI extends PortalsAPI {
       categorySlug,
       sort,
       privacy,
+      aiEnabled,
+      aiScope,
+      communityGroupIds,
+      communityIds,
       host: this.url,
     });
 

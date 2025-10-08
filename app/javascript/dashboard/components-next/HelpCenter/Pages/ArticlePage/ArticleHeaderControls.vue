@@ -10,9 +10,9 @@ import {
   ARTICLE_TABS_OPTIONS,
 } from 'dashboard/helper/portalHelper';
 
-import TabBar from 'dashboard/components-next/tabbar/TabBar.vue';
 import Button from 'dashboard/components-next/button/Button.vue';
 import DropdownMenu from 'dashboard/components-next/dropdown-menu/DropdownMenu.vue';
+import AiAgentFilter from './AiAgentFilter.vue';
 
 const props = defineProps({
   categories: {
@@ -27,6 +27,18 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  communityGroups: {
+    type: Array,
+    default: () => [],
+  },
+  communities: {
+    type: Array,
+    default: () => [],
+  },
+  currentAiFilter: {
+    type: Object,
+    default: () => ({}),
+  },
 });
 
 const emit = defineEmits([
@@ -34,6 +46,7 @@ const emit = defineEmits([
   'localeChange',
   'categoryChange',
   'privacyChange',
+  'aiFilterChange',
   'newArticle',
 ]);
 
@@ -41,9 +54,11 @@ const route = useRoute();
 const { t } = useI18n();
 const { updateUISettings } = useUISettings();
 
+const isStatusMenuOpen = ref(false);
 const isCategoryMenuOpen = ref(false);
 const isLocaleMenuOpen = ref(false);
 const isPrivacyMenuOpen = ref(false);
+const isAiFilterMenuOpen = ref(false);
 
 const countKey = tab => {
   if (tab.value === 'all') {
@@ -52,17 +67,17 @@ const countKey = tab => {
   return `${tab.value}ArticlesCount`;
 };
 
-const tabs = computed(() => {
+const statusOptions = computed(() => {
   return ARTICLE_TABS_OPTIONS.map(tab => ({
-    label: t(`HELP_CENTER.ARTICLES_PAGE.ARTICLES_HEADER.TABS.${tab.key}`),
+    label: `${t(`HELP_CENTER.ARTICLES_PAGE.ARTICLES_HEADER.TABS.${tab.key}`)} (${props.meta[countKey(tab)]})`,
     value: tab.value,
-    count: props.meta[countKey(tab)],
+    action: 'filter',
   }));
 });
 
-const activeTabIndex = computed(() => {
+const activeStatus = computed(() => {
   const tabParam = route.params.tab || ARTICLE_TABS.ALL;
-  return tabs.value.findIndex(tab => tab.value === tabParam);
+  return statusOptions.value.find(opt => opt.value === tabParam);
 });
 
 const activeCategoryName = computed(() => {
@@ -168,87 +183,189 @@ const handleNewArticle = () => {
   emit('newArticle');
 };
 
-const handleTabChange = value => {
-  emit('tabChange', value);
+const hasActiveAiFilters = computed(() => {
+  return props.currentAiFilter && Object.keys(props.currentAiFilter).length > 0;
+});
+
+const aiFilterLabel = computed(() => {
+  if (!hasActiveAiFilters.value) {
+    return t('HELP_CENTER.ARTICLES_PAGE.AI_FILTER.TITLE');
+  }
+
+  // Use same logic as article card badge
+  if (props.currentAiFilter.aiEnabled === 'false') {
+    return t('HELP_CENTER.ARTICLE.AI_OFF');
+  }
+
+  if (props.currentAiFilter.aiEnabled === 'true') {
+    if (props.currentAiFilter.aiScope === 'organization') {
+      return t('HELP_CENTER.ARTICLE.AI_ON_ORGANIZATION');
+    }
+    if (
+      props.currentAiFilter.aiScope === 'community_group' &&
+      props.currentAiFilter.communityGroupIds?.length > 0
+    ) {
+      const selectedGroups = props.communityGroups.filter(g =>
+        props.currentAiFilter.communityGroupIds.includes(g.id)
+      );
+      if (selectedGroups.length > 0) {
+        const groupNames = selectedGroups.map(g => g.name).join(', ');
+        return `${t('HELP_CENTER.ARTICLE.AI_ON')} ${groupNames}`;
+      }
+    } else if (
+      props.currentAiFilter.aiScope === 'community' &&
+      props.currentAiFilter.communityIds?.length > 0
+    ) {
+      const selectedCommunities = props.communities.filter(c =>
+        props.currentAiFilter.communityIds.includes(c.id)
+      );
+      if (selectedCommunities.length > 0) {
+        const communityNames = selectedCommunities.map(c => c.name).join(', ');
+        return `${t('HELP_CENTER.ARTICLE.AI_ON')} ${communityNames}`;
+      }
+    }
+    return t('HELP_CENTER.ARTICLE.AI_ON');
+  }
+
+  return t('HELP_CENTER.ARTICLES_PAGE.AI_FILTER.TITLE');
+});
+
+const handleAiFilterApply = filter => {
+  emit('aiFilterChange', filter);
+  isAiFilterMenuOpen.value = false;
+};
+
+const handleAiFilterClear = () => {
+  emit('aiFilterChange', {});
+  isAiFilterMenuOpen.value = false;
+};
+
+const handleStatusChange = ({ value }) => {
+  emit('tabChange', { value });
+  isStatusMenuOpen.value = false;
 };
 </script>
 
 <template>
-  <div class="flex flex-col items-start w-full gap-2 lg:flex-row">
-    <TabBar
-      :tabs="tabs"
-      :initial-active-tab="activeTabIndex"
-      @tab-changed="handleTabChange"
-    />
-    <div class="flex items-start justify-between w-full gap-2">
-      <div class="flex items-center gap-2">
-        <div class="relative group">
-          <OnClickOutside @trigger="isLocaleMenuOpen = false">
-            <Button
-              :label="activeLocaleName"
-              size="sm"
-              icon="i-lucide-chevron-down"
-              color="slate"
-              trailing-icon
-              @click="isLocaleMenuOpen = !isLocaleMenuOpen"
-            />
+  <div class="flex items-start justify-between w-full gap-2">
+    <div class="flex items-center gap-2">
+      <!-- Status Filter -->
+      <div class="relative group">
+        <OnClickOutside @trigger="isStatusMenuOpen = false">
+          <Button
+            :label="activeStatus?.label"
+            icon="i-lucide-chevron-down"
+            size="sm"
+            color="slate"
+            trailing-icon
+            @click="isStatusMenuOpen = !isStatusMenuOpen"
+          />
 
-            <DropdownMenu
-              v-if="isLocaleMenuOpen"
-              :menu-items="localeMenuItems"
-              show-search
-              class="left-0 w-40 max-w-[300px] mt-2 overflow-y-auto xl:right-0 top-full max-h-60"
-              @action="handleLocaleAction"
-            />
-          </OnClickOutside>
-        </div>
-        <div v-if="hasCategoryMenuItems" class="relative group">
-          <OnClickOutside @trigger="isCategoryMenuOpen = false">
-            <Button
-              :label="activeCategoryName"
-              icon="i-lucide-chevron-down"
-              size="sm"
-              color="slate"
-              trailing-icon
-              class="max-w-48"
-              @click="isCategoryMenuOpen = !isCategoryMenuOpen"
-            />
-
-            <DropdownMenu
-              v-if="isCategoryMenuOpen"
-              :menu-items="categoryMenuItems"
-              show-search
-              class="left-0 w-48 mt-2 overflow-y-auto xl:right-0 top-full max-h-60"
-              @action="handleCategoryAction"
-            />
-          </OnClickOutside>
-        </div>
-        <div class="relative group">
-          <OnClickOutside @trigger="isPrivacyMenuOpen = false">
-            <Button
-              :label="activePrivacyFilter"
-              icon="i-lucide-chevron-down"
-              size="sm"
-              color="slate"
-              trailing-icon
-              @click="isPrivacyMenuOpen = !isPrivacyMenuOpen"
-            />
-
-            <DropdownMenu
-              v-if="isPrivacyMenuOpen"
-              :menu-items="privacyMenuItems"
-              class="left-0 w-40 mt-2 overflow-y-auto xl:right-0 top-full max-h-60"
-              @action="handlePrivacyAction"
-            />
-          </OnClickOutside>
-        </div>
+          <DropdownMenu
+            v-if="isStatusMenuOpen"
+            :menu-items="statusOptions"
+            class="left-0 w-48 mt-2 overflow-y-auto xl:right-0 top-full max-h-60"
+            @action="handleStatusChange"
+          />
+        </OnClickOutside>
       </div>
-      <Button
-        :label="t('HELP_CENTER.ARTICLES_PAGE.ARTICLES_HEADER.NEW_ARTICLE')"
-        icon="i-lucide-plus"
-        size="sm"
-        @click="handleNewArticle"
-      />
+
+      <!-- Locale Filter -->
+      <div class="relative group">
+        <OnClickOutside @trigger="isLocaleMenuOpen = false">
+          <Button
+            :label="activeLocaleName"
+            size="sm"
+            icon="i-lucide-chevron-down"
+            color="slate"
+            trailing-icon
+            @click="isLocaleMenuOpen = !isLocaleMenuOpen"
+          />
+
+          <DropdownMenu
+            v-if="isLocaleMenuOpen"
+            :menu-items="localeMenuItems"
+            show-search
+            class="left-0 w-40 max-w-[300px] mt-2 overflow-y-auto xl:right-0 top-full max-h-60"
+            @action="handleLocaleAction"
+          />
+        </OnClickOutside>
+      </div>
+
+      <!-- Category Filter -->
+      <div v-if="hasCategoryMenuItems" class="relative group">
+        <OnClickOutside @trigger="isCategoryMenuOpen = false">
+          <Button
+            :label="activeCategoryName"
+            icon="i-lucide-chevron-down"
+            size="sm"
+            color="slate"
+            trailing-icon
+            class="max-w-48"
+            @click="isCategoryMenuOpen = !isCategoryMenuOpen"
+          />
+
+          <DropdownMenu
+            v-if="isCategoryMenuOpen"
+            :menu-items="categoryMenuItems"
+            show-search
+            class="left-0 w-48 mt-2 overflow-y-auto xl:right-0 top-full max-h-60"
+            @action="handleCategoryAction"
+          />
+        </OnClickOutside>
+      </div>
+
+      <!-- Privacy Filter -->
+      <div class="relative group">
+        <OnClickOutside @trigger="isPrivacyMenuOpen = false">
+          <Button
+            :label="activePrivacyFilter"
+            icon="i-lucide-chevron-down"
+            size="sm"
+            color="slate"
+            trailing-icon
+            @click="isPrivacyMenuOpen = !isPrivacyMenuOpen"
+          />
+
+          <DropdownMenu
+            v-if="isPrivacyMenuOpen"
+            :menu-items="privacyMenuItems"
+            class="left-0 w-40 mt-2 overflow-y-auto xl:right-0 top-full max-h-60"
+            @action="handlePrivacyAction"
+          />
+        </OnClickOutside>
+      </div>
+
+      <!-- AI Filter -->
+      <div class="relative group">
+        <OnClickOutside @trigger="isAiFilterMenuOpen = false">
+          <Button
+            :label="aiFilterLabel"
+            icon="i-lucide-chevron-down"
+            size="sm"
+            color="slate"
+            trailing-icon
+            @click="isAiFilterMenuOpen = !isAiFilterMenuOpen"
+          />
+
+          <AiAgentFilter
+            v-if="isAiFilterMenuOpen"
+            :community-groups="communityGroups"
+            :communities="communities"
+            :current-filter="currentAiFilter"
+            class="absolute left-0 mt-2 z-10 xl:right-0 top-full"
+            @apply="handleAiFilterApply"
+            @clear="handleAiFilterClear"
+          />
+        </OnClickOutside>
+      </div>
     </div>
+
+    <Button
+      :label="t('HELP_CENTER.ARTICLES_PAGE.ARTICLES_HEADER.NEW_ARTICLE')"
+      icon="i-lucide-plus"
+      size="sm"
+      @click="handleNewArticle"
+    />
   </div>
 </template>

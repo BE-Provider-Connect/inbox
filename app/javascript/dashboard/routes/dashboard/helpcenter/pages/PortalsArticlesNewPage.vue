@@ -81,11 +81,10 @@ const createNewArticle = async ({ title, content, private: isPrivate }) => {
 
 const goBackToArticles = () => {
   const { tab, categorySlug, locale } = route.params;
-  const { privacy } = route.query;
   router.push({
     name: 'portals_articles_index',
     params: { tab, categorySlug, locale },
-    query: privacy ? { privacy } : {},
+    query: route.query,
   });
 };
 </script>

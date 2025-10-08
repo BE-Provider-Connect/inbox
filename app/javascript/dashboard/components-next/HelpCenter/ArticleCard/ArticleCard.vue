@@ -48,6 +48,22 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  aiAgentEnabled: {
+    type: Boolean,
+    default: false,
+  },
+  aiAgentScope: {
+    type: String,
+    default: '',
+  },
+  communityGroups: {
+    type: Array,
+    default: () => [],
+  },
+  communities: {
+    type: Array,
+    default: () => [],
+  },
 });
 
 const emit = defineEmits(['openArticle', 'articleAction']);
@@ -114,6 +130,29 @@ const authorThumbnailSrc = computed(() => {
 
 const lastUpdatedAt = computed(() => {
   return dynamicTime(props.updatedAt);
+});
+
+const aiAgentLabel = computed(() => {
+  if (!props.aiAgentEnabled) {
+    return t('HELP_CENTER.ARTICLE.AI_OFF');
+  }
+
+  if (props.aiAgentScope === 'organization') {
+    return t('HELP_CENTER.ARTICLE.AI_ON_ORGANIZATION');
+  }
+  if (
+    props.aiAgentScope === 'community_group' &&
+    props.communityGroups.length > 0
+  ) {
+    const groupNames = props.communityGroups.map(g => g.name).join(', ');
+    return `${t('HELP_CENTER.ARTICLE.AI_ON')} ${groupNames}`;
+  }
+  if (props.aiAgentScope === 'community' && props.communities.length > 0) {
+    const communityNames = props.communities.map(c => c.name).join(', ');
+    return `${t('HELP_CENTER.ARTICLE.AI_ON')} ${communityNames}`;
+  }
+
+  return t('HELP_CENTER.ARTICLE.AI_ON');
 });
 
 const handleArticleAction = ({ action, value }) => {
@@ -191,6 +230,17 @@ const handleClick = id => {
                 ? $t('HELP_CENTER.ARTICLE.PRIVATE')
                 : $t('HELP_CENTER.ARTICLE.PUBLIC')
             }}
+          </span>
+        </div>
+        <div
+          class="inline-flex items-center gap-1 text-n-slate-11 whitespace-nowrap"
+        >
+          <Icon
+            :icon="aiAgentEnabled ? 'i-lucide-bot' : 'i-lucide-bot-off'"
+            class="size-4"
+          />
+          <span class="text-sm">
+            {{ aiAgentLabel }}
           </span>
         </div>
         <div
