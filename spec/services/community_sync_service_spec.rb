@@ -3,6 +3,7 @@ require 'rails_helper'
 RSpec.describe CommunitySyncService do
   subject(:sync_service) { described_class.new }
 
+  let(:account) { create(:account, external_id: 'org-1') }
   let(:api_client) { instance_double(Integrations::CitadelApi::Client) }
   let(:community_groups_data) do
     [
@@ -20,6 +21,7 @@ RSpec.describe CommunitySyncService do
   end
 
   before do
+    account # Ensure account exists
     allow(Integrations::CitadelApi::Client).to receive(:new).and_return(api_client)
     allow(api_client).to receive(:fetch_community_groups).and_return(community_groups_data)
     allow(api_client).to receive(:fetch_communities).and_return(communities_data)
@@ -76,9 +78,9 @@ RSpec.describe CommunitySyncService do
     end
 
     context 'with existing records' do
-      let!(:existing_group) { create(:community_group, external_id: 'group-1', name: 'Old Name') }
+      let!(:existing_group) { create(:community_group, external_id: 'group-1', name: 'Old Name', account: account) }
       let!(:existing_community) do
-        create(:community, external_id: 'comm-1', name: 'Old Community Name', community_group: existing_group)
+        create(:community, external_id: 'comm-1', name: 'Old Community Name', community_group: existing_group, account: account)
       end
 
       it 'updates existing community groups' do
@@ -198,8 +200,30 @@ RSpec.describe CommunitySyncService do
 
       it 'creates community with nil community_group when group not found' do
         sync_service.perform
-        community = Community.find_by(external_id: 'comm-orphan')
+        community = Community.find_by(external_id: 'comm-orphan', account_id: account.id)
         expect(community.community_group).to be_nil
+      end
+    end
+
+    context 'with missing account' do
+      let(:data_for_missing_account) do
+        [
+          { 'id' => 'group-orphan', 'name' => 'Orphan Group', 'organizationId' => 'org-999' }
+        ]
+      end
+
+      before do
+        allow(api_client).to receive(:fetch_community_groups).and_return(data_for_missing_account)
+        allow(Rails.logger).to receive(:warn)
+      end
+
+      it 'skips records when account not found' do
+        expect { sync_service.perform }.not_to change(CommunityGroup, :count)
+      end
+
+      it 'logs a warning' do
+        sync_service.perform
+        expect(Rails.logger).to have_received(:warn).with(/No account found for organization org-999/)
       end
     end
   end

@@ -29,7 +29,17 @@ class CommunitySyncService
   end
 
   def sync_community_group(group_data)
-    community_group = CommunityGroup.find_or_initialize_by(external_id: group_data['id'])
+    account = Account.find_by(external_id: group_data['organizationId'])
+
+    unless account
+      Rails.logger.warn "No account found for organization #{group_data['organizationId']}, skipping group #{group_data['id']}"
+      return
+    end
+
+    community_group = CommunityGroup.find_or_initialize_by(
+      external_id: group_data['id'],
+      account_id: account.id
+    )
 
     if community_group.new_record?
       @stats[:community_groups][:created] += 1
@@ -52,7 +62,17 @@ class CommunitySyncService
   end
 
   def sync_community(community_data)
-    community = Community.find_or_initialize_by(external_id: community_data['id'])
+    account = Account.find_by(external_id: community_data['organizationId'])
+
+    unless account
+      Rails.logger.warn "No account found for organization #{community_data['organizationId']}, skipping community #{community_data['id']}"
+      return
+    end
+
+    community = Community.find_or_initialize_by(
+      external_id: community_data['id'],
+      account_id: account.id
+    )
 
     if community.new_record?
       @stats[:communities][:created] += 1
@@ -60,8 +80,13 @@ class CommunitySyncService
       @stats[:communities][:updated] += 1
     end
 
-    # Find the community group by external_id if present
-    community_group = (CommunityGroup.find_by(external_id: community_data['communityGroupId']) if community_data['communityGroupId'].present?)
+    # Find the community group by external_id within the same account
+    community_group = if community_data['communityGroupId'].present?
+                        CommunityGroup.find_by(
+                          external_id: community_data['communityGroupId'],
+                          account_id: account.id
+                        )
+                      end
 
     community.update!(
       name: community_data['name'],

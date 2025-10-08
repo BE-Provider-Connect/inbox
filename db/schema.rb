@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_10_07_112758) do
+ActiveRecord::Schema[7.1].define(version: 2025_10_08_091132) do
   # These extensions should be enabled to support this database
   enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
@@ -73,6 +73,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_10_07_112758) do
     t.integer "status", default: 0
     t.jsonb "internal_attributes", default: {}, null: false
     t.jsonb "settings", default: {}
+    t.string "external_id"
+    t.index ["external_id"], name: "index_accounts_on_external_id", unique: true
     t.index ["status"], name: "index_accounts_on_status"
   end
 
@@ -585,6 +587,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_10_07_112758) do
     t.datetime "synced_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "account_id"
+    t.index ["account_id"], name: "index_communities_on_account_id"
     t.index ["community_group_id"], name: "index_communities_on_community_group_id"
     t.index ["external_id"], name: "index_communities_on_external_id", unique: true
   end
@@ -595,6 +599,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_10_07_112758) do
     t.datetime "synced_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "account_id"
+    t.index ["account_id"], name: "index_community_groups_on_account_id"
     t.index ["external_id"], name: "index_community_groups_on_external_id", unique: true
   end
 
@@ -1268,7 +1274,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_10_07_112758) do
   add_foreign_key "article_communities", "communities"
   add_foreign_key "article_community_groups", "articles"
   add_foreign_key "article_community_groups", "community_groups"
+  add_foreign_key "communities", "accounts"
   add_foreign_key "communities", "community_groups"
+  add_foreign_key "community_groups", "accounts"
   add_foreign_key "inboxes", "portals"
   create_trigger("accounts_after_insert_row_tr", :generated => true, :compatibility => 1).
       on("accounts").

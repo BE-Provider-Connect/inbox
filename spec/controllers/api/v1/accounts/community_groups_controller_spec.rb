@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe 'Community Groups API', type: :request do
   let!(:account) { create(:account) }
-  let!(:community_group) { create(:community_group) }
+  let!(:community_group) { create(:community_group, account: account) }
 
   describe 'GET /api/v1/accounts/{account.id}/community_groups' do
     context 'when it is an unauthenticated user' do
@@ -17,7 +17,7 @@ RSpec.describe 'Community Groups API', type: :request do
       let(:admin) { create(:user, account: account, role: :administrator) }
 
       it 'returns all community groups' do
-        create_list(:community_group, 2)
+        create_list(:community_group, 2, account: account)
 
         get "/api/v1/accounts/#{account.id}/community_groups",
             headers: admin.create_new_auth_token,
@@ -56,8 +56,8 @@ RSpec.describe 'Community Groups API', type: :request do
       end
 
       it 'includes associated communities' do
-        community1 = create(:community, community_group: community_group)
-        community2 = create(:community, community_group: community_group)
+        community1 = create(:community, community_group: community_group, account: account)
+        community2 = create(:community, community_group: community_group, account: account)
 
         get "/api/v1/accounts/#{account.id}/community_groups/#{community_group.id}",
             headers: admin.create_new_auth_token,
