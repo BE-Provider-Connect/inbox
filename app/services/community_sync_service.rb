@@ -29,28 +29,12 @@ class CommunitySyncService
   end
 
   def sync_community_group(group_data)
-    account = Account.find_by(external_id: group_data['organizationId'])
+    account = find_account_for_organization(group_data['organizationId'], group_data['id'], 'community group')
+    return unless account
 
-    unless account
-      Rails.logger.warn "No account found for organization #{group_data['organizationId']}, skipping group #{group_data['id']}"
-      return
-    end
-
-    community_group = CommunityGroup.find_or_initialize_by(
-      external_id: group_data['id'],
-      account_id: account.id
-    )
-
-    if community_group.new_record?
-      @stats[:community_groups][:created] += 1
-    else
-      @stats[:community_groups][:updated] += 1
-    end
-
-    community_group.update!(
-      name: group_data['name'],
-      synced_at: Time.current
-    )
+    community_group = find_or_initialize_community_group(group_data, account)
+    update_community_group_stats(community_group)
+    update_community_group(community_group, group_data)
   end
 
   def sync_communities
@@ -76,6 +60,28 @@ class CommunitySyncService
     account = Account.find_by(external_id: organization_id)
     Rails.logger.warn "No account found for organization #{organization_id}, skipping #{record_type} #{record_id}" unless account
     account
+  end
+
+  def find_or_initialize_community_group(group_data, account)
+    CommunityGroup.find_or_initialize_by(
+      external_id: group_data['id'],
+      account_id: account.id
+    )
+  end
+
+  def update_community_group_stats(community_group)
+    if community_group.new_record?
+      @stats[:community_groups][:created] += 1
+    else
+      @stats[:community_groups][:updated] += 1
+    end
+  end
+
+  def update_community_group(community_group, group_data)
+    community_group.update!(
+      name: group_data['name'],
+      synced_at: Time.current
+    )
   end
 
   def find_or_initialize_community(community_data, account)
