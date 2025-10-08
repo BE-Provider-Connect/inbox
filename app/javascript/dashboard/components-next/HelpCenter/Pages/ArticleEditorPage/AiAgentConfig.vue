@@ -1,10 +1,10 @@
 <script setup>
-import { reactive, watch, computed, onMounted } from 'vue';
+import { reactive, watch, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import Button from 'dashboard/components-next/button/Button.vue';
 import ToggleSwitch from 'dashboard/components-next/switch/Switch.vue';
-import SingleSelect from 'dashboard/components-next/filter/inputs/SingleSelect.vue';
+import AiAgentScopeSelector from 'dashboard/components-next/HelpCenter/AiAgentScopeSelector.vue';
 
 const props = defineProps({
   article: {
@@ -40,46 +40,6 @@ const scopeOptions = [
   { id: 'community_group', name: 'Community Group' },
   { id: 'community', name: 'Community' },
 ];
-
-const communityGroupOptions = computed(() =>
-  props.communityGroups.map(group => ({
-    id: group.id,
-    name: group.name,
-  }))
-);
-
-const communityOptions = computed(() =>
-  props.communities.map(community => ({
-    id: community.id,
-    name: community.name,
-  }))
-);
-
-const entityOptions = computed(() => {
-  if (state.scope?.id === 'community_group') {
-    return communityGroupOptions.value;
-  }
-  if (state.scope?.id === 'community') {
-    return communityOptions.value;
-  }
-  return [];
-});
-
-const showEntitySelector = computed(() => {
-  return (
-    state.enabled &&
-    state.scope &&
-    (state.scope.id === 'community_group' || state.scope.id === 'community')
-  );
-});
-
-// Computed property to ensure scope is never null (for Vue validation)
-const scopeModel = computed({
-  get: () => state.scope ?? undefined,
-  set: val => {
-    state.scope = val ?? undefined;
-  },
-});
 
 const updateState = () => {
   state.isUpdatingFromProp = true;
@@ -243,48 +203,14 @@ onMounted(() => {
       </div>
 
       <!-- Scope Selection -->
-      <div v-if="state.enabled" class="flex flex-col gap-4">
-        <div class="flex flex-col gap-2">
-          <label class="text-sm font-medium text-n-slate-12">
-            {{ t(`${i18nBase}.SCOPE_LABEL`) }}
-          </label>
-          <SingleSelect
-            v-model="scopeModel"
-            :options="scopeOptions"
-            :placeholder="t(`${i18nBase}.SELECT_SCOPE`)"
-            disable-search
-          />
-        </div>
-
-        <!-- Entity Selector -->
-        <div v-if="showEntitySelector" class="flex flex-col gap-2">
-          <label class="text-sm font-medium text-n-slate-12">
-            {{
-              state.scope.id === 'community_group'
-                ? t(`${i18nBase}.SELECT_COMMUNITY_GROUP`)
-                : t(`${i18nBase}.SELECT_COMMUNITY`)
-            }}
-          </label>
-          <SingleSelect
-            v-model="state.selectedEntity"
-            :options="entityOptions"
-            :placeholder="
-              state.scope.id === 'community_group'
-                ? t(`${i18nBase}.SELECT_COMMUNITY_GROUP`)
-                : t(`${i18nBase}.SELECT_COMMUNITY`)
-            "
-          />
-          <p
-            v-if="!state.selectedEntity && entityOptions.length === 0"
-            class="text-xs text-n-slate-10"
-          >
-            {{
-              state.scope.id === 'community_group'
-                ? t(`${i18nBase}.NO_COMMUNITY_GROUPS`)
-                : t(`${i18nBase}.NO_COMMUNITIES`)
-            }}
-          </p>
-        </div>
+      <div v-if="state.enabled">
+        <AiAgentScopeSelector
+          v-model:scope="state.scope"
+          v-model:selected-entity="state.selectedEntity"
+          :community-groups="communityGroups"
+          :communities="communities"
+          :disabled="state.isSaving"
+        />
       </div>
     </div>
   </div>

@@ -50,38 +50,8 @@ const scopeOptions = [
   { id: 'community', name: t('HELP_CENTER.ARTICLES_PAGE.AI_FILTER.COMMUNITY') },
 ];
 
-const communityGroupOptions = computed(() =>
-  props.communityGroups.map(group => ({
-    id: group.id,
-    name: group.name,
-  }))
-);
-
-const communityOptions = computed(() =>
-  props.communities.map(community => ({
-    id: community.id,
-    name: community.name,
-  }))
-);
-
 const isScopeEnabled = computed(() => {
   return state.enabled?.id === 'true';
-});
-
-const showGroupSelector = computed(() => {
-  return (
-    isScopeEnabled.value &&
-    state.scope?.id === 'community_group' &&
-    communityGroupOptions.value.length > 0
-  );
-});
-
-const showCommunitySelector = computed(() => {
-  return (
-    isScopeEnabled.value &&
-    state.scope?.id === 'community' &&
-    communityOptions.value.length > 0
-  );
 });
 
 const hasActiveFilters = computed(() => {
@@ -147,9 +117,9 @@ const initializeState = () => {
     // Initialize community group if present
     if (props.currentFilter.communityGroupIds?.length > 0) {
       const groupId = props.currentFilter.communityGroupIds[0];
-      state.selectedGroup = communityGroupOptions.value.find(
-        opt => opt.id === groupId
-      );
+      state.selectedGroup = props.communityGroups
+        .map(g => ({ id: g.id, name: g.name }))
+        .find(opt => opt.id === groupId);
     } else {
       state.selectedGroup = undefined;
     }
@@ -157,9 +127,9 @@ const initializeState = () => {
     // Initialize community if present
     if (props.currentFilter.communityIds?.length > 0) {
       const communityId = props.currentFilter.communityIds[0];
-      state.selectedCommunity = communityOptions.value.find(
-        opt => opt.id === communityId
-      );
+      state.selectedCommunity = props.communities
+        .map(c => ({ id: c.id, name: c.name }))
+        .find(opt => opt.id === communityId);
     } else {
       state.selectedCommunity = undefined;
     }
@@ -259,25 +229,49 @@ onMounted(() => {
       </div>
 
       <!-- Community Group Select -->
-      <div v-if="showGroupSelector" class="flex flex-col gap-2">
+      <div
+        v-if="
+          isScopeEnabled &&
+          state.scope?.id === 'community_group' &&
+          communityGroups.length > 0
+        "
+        class="flex flex-col gap-2"
+      >
         <label class="text-xs font-medium text-n-slate-11">
           {{ t('HELP_CENTER.ARTICLES_PAGE.AI_FILTER.COMMUNITY_GROUP') }}
         </label>
         <SingleSelect
           v-model="state.selectedGroup"
-          :options="communityGroupOptions"
+          :options="
+            communityGroups.map(g => ({
+              id: g.id,
+              name: g.name,
+            }))
+          "
           :placeholder="t('HELP_CENTER.ARTICLES_PAGE.AI_FILTER.SELECT_GROUPS')"
         />
       </div>
 
       <!-- Community Select -->
-      <div v-if="showCommunitySelector" class="flex flex-col gap-2">
+      <div
+        v-if="
+          isScopeEnabled &&
+          state.scope?.id === 'community' &&
+          communities.length > 0
+        "
+        class="flex flex-col gap-2"
+      >
         <label class="text-xs font-medium text-n-slate-11">
           {{ t('HELP_CENTER.ARTICLES_PAGE.AI_FILTER.COMMUNITY') }}
         </label>
         <SingleSelect
           v-model="state.selectedCommunity"
-          :options="communityOptions"
+          :options="
+            communities.map(c => ({
+              id: c.id,
+              name: c.name,
+            }))
+          "
           :placeholder="
             t('HELP_CENTER.ARTICLES_PAGE.AI_FILTER.SELECT_COMMUNITIES')
           "

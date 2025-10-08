@@ -8,6 +8,7 @@ import {
   ARTICLE_MENU_OPTIONS,
   ARTICLE_STATUSES,
 } from 'dashboard/helper/portalHelper';
+import { useAiAgentLabel } from 'dashboard/composables/useAiAgentLabel';
 
 import Icon from 'dashboard/components-next/icon/Icon.vue';
 import CardLayout from 'dashboard/components-next/CardLayout.vue';
@@ -132,28 +133,14 @@ const lastUpdatedAt = computed(() => {
   return dynamicTime(props.updatedAt);
 });
 
-const aiAgentLabel = computed(() => {
-  if (!props.aiAgentEnabled) {
-    return t('HELP_CENTER.ARTICLE.AI_OFF');
-  }
+const aiAgentConfig = computed(() => ({
+  enabled: props.aiAgentEnabled,
+  scope: props.aiAgentScope,
+  communityGroups: props.communityGroups,
+  communities: props.communities,
+}));
 
-  if (props.aiAgentScope === 'organization') {
-    return t('HELP_CENTER.ARTICLE.AI_ON_ORGANIZATION');
-  }
-  if (
-    props.aiAgentScope === 'community_group' &&
-    props.communityGroups.length > 0
-  ) {
-    const groupNames = props.communityGroups.map(g => g.name).join(', ');
-    return `${t('HELP_CENTER.ARTICLE.AI_ON')} ${groupNames}`;
-  }
-  if (props.aiAgentScope === 'community' && props.communities.length > 0) {
-    const communityNames = props.communities.map(c => c.name).join(', ');
-    return `${t('HELP_CENTER.ARTICLE.AI_ON')} ${communityNames}`;
-  }
-
-  return t('HELP_CENTER.ARTICLE.AI_ON');
-});
+const { label: aiAgentLabel } = useAiAgentLabel(aiAgentConfig);
 
 const handleArticleAction = ({ action, value }) => {
   toggleDropdown(false);

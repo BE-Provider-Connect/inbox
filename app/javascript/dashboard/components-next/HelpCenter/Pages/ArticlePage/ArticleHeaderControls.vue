@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 import { OnClickOutside } from '@vueuse/components';
 import { useUISettings } from 'dashboard/composables/useUISettings';
+import { useAiAgentLabel } from 'dashboard/composables/useAiAgentLabel';
 import {
   ARTICLE_TABS,
   CATEGORY_ALL,
@@ -187,47 +188,39 @@ const hasActiveAiFilters = computed(() => {
   return props.currentAiFilter && Object.keys(props.currentAiFilter).length > 0;
 });
 
-const aiFilterLabel = computed(() => {
+const aiAgentConfig = computed(() => {
   if (!hasActiveAiFilters.value) {
-    return t('HELP_CENTER.ARTICLES_PAGE.AI_FILTER.TITLE');
+    return null;
   }
 
-  // Use same logic as article card badge
-  if (props.currentAiFilter.aiEnabled === 'false') {
-    return t('HELP_CENTER.ARTICLE.AI_OFF');
-  }
+  const selectedGroups =
+    props.currentAiFilter.communityGroupIds?.length > 0
+      ? props.communityGroups.filter(g =>
+          props.currentAiFilter.communityGroupIds.includes(g.id)
+        )
+      : [];
 
-  if (props.currentAiFilter.aiEnabled === 'true') {
-    if (props.currentAiFilter.aiScope === 'organization') {
-      return t('HELP_CENTER.ARTICLE.AI_ON_ORGANIZATION');
-    }
-    if (
-      props.currentAiFilter.aiScope === 'community_group' &&
-      props.currentAiFilter.communityGroupIds?.length > 0
-    ) {
-      const selectedGroups = props.communityGroups.filter(g =>
-        props.currentAiFilter.communityGroupIds.includes(g.id)
-      );
-      if (selectedGroups.length > 0) {
-        const groupNames = selectedGroups.map(g => g.name).join(', ');
-        return `${t('HELP_CENTER.ARTICLE.AI_ON')} ${groupNames}`;
-      }
-    } else if (
-      props.currentAiFilter.aiScope === 'community' &&
-      props.currentAiFilter.communityIds?.length > 0
-    ) {
-      const selectedCommunities = props.communities.filter(c =>
-        props.currentAiFilter.communityIds.includes(c.id)
-      );
-      if (selectedCommunities.length > 0) {
-        const communityNames = selectedCommunities.map(c => c.name).join(', ');
-        return `${t('HELP_CENTER.ARTICLE.AI_ON')} ${communityNames}`;
-      }
-    }
-    return t('HELP_CENTER.ARTICLE.AI_ON');
-  }
+  const selectedCommunities =
+    props.currentAiFilter.communityIds?.length > 0
+      ? props.communities.filter(c =>
+          props.currentAiFilter.communityIds.includes(c.id)
+        )
+      : [];
 
-  return t('HELP_CENTER.ARTICLES_PAGE.AI_FILTER.TITLE');
+  return {
+    enabled: props.currentAiFilter.aiEnabled === 'true',
+    scope: props.currentAiFilter.aiScope,
+    communityGroups: selectedGroups,
+    communities: selectedCommunities,
+  };
+});
+
+const { label: aiAgentLabel } = useAiAgentLabel(aiAgentConfig);
+
+const aiFilterLabel = computed(() => {
+  return hasActiveAiFilters.value
+    ? aiAgentLabel.value
+    : t('HELP_CENTER.ARTICLES_PAGE.AI_FILTER.TITLE');
 });
 
 const handleAiFilterApply = filter => {
