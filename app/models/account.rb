@@ -49,6 +49,7 @@ class Account < ApplicationRecord
   }.freeze
 
   validates :domain, length: { maximum: 100 }
+  validates :external_id, uniqueness: true, allow_nil: true
   validates_with JsonSchemaValidator,
                  schema: SETTINGS_PARAMS_SCHEMA,
                  attribute_resolver: ->(record) { record.settings }
