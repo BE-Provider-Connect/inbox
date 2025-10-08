@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_10_08_091132) do
+ActiveRecord::Schema[7.1].define(version: 2025_10_08_092658) do
   # These extensions should be enabled to support this database
   enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
@@ -590,6 +590,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_10_08_091132) do
     t.bigint "account_id"
     t.index ["account_id"], name: "index_communities_on_account_id"
     t.index ["community_group_id"], name: "index_communities_on_community_group_id"
+    t.index ["external_id", "account_id"], name: "index_communities_on_external_id_and_account_id", unique: true
     t.index ["external_id"], name: "index_communities_on_external_id", unique: true
   end
 
@@ -601,6 +602,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_10_08_091132) do
     t.datetime "updated_at", null: false
     t.bigint "account_id"
     t.index ["account_id"], name: "index_community_groups_on_account_id"
+    t.index ["external_id", "account_id"], name: "index_community_groups_on_external_id_and_account_id", unique: true
     t.index ["external_id"], name: "index_community_groups_on_external_id", unique: true
   end
 

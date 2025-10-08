@@ -62,32 +62,44 @@ class CommunitySyncService
   end
 
   def sync_community(community_data)
-    account = Account.find_by(external_id: community_data['organizationId'])
+    account = find_account_for_organization(community_data['organizationId'], community_data['id'], 'community')
+    return unless account
 
-    unless account
-      Rails.logger.warn "No account found for organization #{community_data['organizationId']}, skipping community #{community_data['id']}"
-      return
-    end
+    community = find_or_initialize_community(community_data, account)
+    update_community_stats(community)
 
-    community = Community.find_or_initialize_by(
+    community_group = find_community_group(community_data['communityGroupId'], account)
+    update_community(community, community_data, community_group)
+  end
+
+  def find_account_for_organization(organization_id, record_id, record_type)
+    account = Account.find_by(external_id: organization_id)
+    Rails.logger.warn "No account found for organization #{organization_id}, skipping #{record_type} #{record_id}" unless account
+    account
+  end
+
+  def find_or_initialize_community(community_data, account)
+    Community.find_or_initialize_by(
       external_id: community_data['id'],
       account_id: account.id
     )
+  end
 
+  def update_community_stats(community)
     if community.new_record?
       @stats[:communities][:created] += 1
     else
       @stats[:communities][:updated] += 1
     end
+  end
 
-    # Find the community group by external_id within the same account
-    community_group = if community_data['communityGroupId'].present?
-                        CommunityGroup.find_by(
-                          external_id: community_data['communityGroupId'],
-                          account_id: account.id
-                        )
-                      end
+  def find_community_group(community_group_id, account)
+    return if community_group_id.blank?
 
+    CommunityGroup.find_by(external_id: community_group_id, account_id: account.id)
+  end
+
+  def update_community(community, community_data, community_group)
     community.update!(
       name: community_data['name'],
       community_group: community_group,
