@@ -16,12 +16,14 @@
 #  index_communities_on_external_id         (external_id) UNIQUE
 #
 class Community < ApplicationRecord
+  belongs_to :account
   belongs_to :community_group, optional: true
   has_many :article_communities, dependent: :destroy
   has_many :articles, through: :article_communities
 
-  validates :external_id, presence: true, uniqueness: true
+  validates :external_id, presence: true, uniqueness: { scope: :account_id }
   validates :name, presence: true
+  validates :account_id, presence: true
 
   scope :with_articles, -> { joins(:articles).distinct }
   scope :for_community_group, ->(group_id) { where(community_group_id: group_id) }

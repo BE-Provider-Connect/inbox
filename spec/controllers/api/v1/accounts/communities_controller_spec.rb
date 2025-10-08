@@ -2,8 +2,8 @@ require 'rails_helper'
 
 RSpec.describe 'Communities API', type: :request do
   let!(:account) { create(:account) }
-  let!(:community_group) { create(:community_group) }
-  let!(:community) { create(:community, community_group: community_group) }
+  let!(:community_group) { create(:community_group, account: account) }
+  let!(:community) { create(:community, community_group: community_group, account: account) }
 
   describe 'GET /api/v1/accounts/{account.id}/communities' do
     context 'when it is an unauthenticated user' do
@@ -18,7 +18,7 @@ RSpec.describe 'Communities API', type: :request do
       let(:admin) { create(:user, account: account, role: :administrator) }
 
       it 'returns all communities' do
-        create_list(:community, 2)
+        create_list(:community, 2, account: account)
 
         get "/api/v1/accounts/#{account.id}/communities",
             headers: admin.create_new_auth_token,
@@ -31,9 +31,9 @@ RSpec.describe 'Communities API', type: :request do
       end
 
       it 'filters communities by community_group_id' do
-        other_group = create(:community_group)
-        community_in_group = create(:community, community_group: community_group)
-        community_in_other_group = create(:community, community_group: other_group)
+        other_group = create(:community_group, account: account)
+        community_in_group = create(:community, community_group: community_group, account: account)
+        community_in_other_group = create(:community, community_group: other_group, account: account)
 
         get "/api/v1/accounts/#{account.id}/communities",
             headers: admin.create_new_auth_token,
@@ -99,7 +99,7 @@ RSpec.describe 'Communities API', type: :request do
       end
 
       it 'handles community without a group' do
-        standalone_community = create(:community, community_group: nil)
+        standalone_community = create(:community, community_group: nil, account: account)
 
         get "/api/v1/accounts/#{account.id}/communities/#{standalone_community.id}",
             headers: admin.create_new_auth_token,
