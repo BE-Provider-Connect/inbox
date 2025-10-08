@@ -37,9 +37,21 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  communityGroups: {
+    type: Array,
+    default: () => [],
+  },
+  communities: {
+    type: Array,
+    default: () => [],
+  },
+  currentAiFilter: {
+    type: Object,
+    default: () => ({}),
+  },
 });
 
-const emit = defineEmits(['pageChange', 'fetchPortal']);
+const emit = defineEmits(['pageChange', 'fetchPortal', 'aiFilterChange']);
 
 const router = useRouter();
 const route = useRoute();
@@ -139,6 +151,7 @@ const handleLocaleAction = value => {
   emit('fetchPortal', value);
 };
 const handlePageChange = page => emit('pageChange', page);
+const handleAiFilterChange = filter => emit('aiFilterChange', filter);
 
 const navigateToNewArticlePage = () => {
   const { categorySlug, locale } = route.params;
@@ -168,10 +181,14 @@ const navigateToNewArticlePage = () => {
           :categories="categories"
           :allowed-locales="allowedLocales"
           :meta="meta"
+          :community-groups="communityGroups"
+          :communities="communities"
+          :current-ai-filter="currentAiFilter"
           @tab-change="handleTabChange"
           @locale-change="handleLocaleAction"
           @category-change="handleCategoryAction"
           @privacy-change="handlePrivacyAction"
+          @ai-filter-change="handleAiFilterChange"
           @new-article="navigateToNewArticlePage"
         />
         <CategoryHeaderControls

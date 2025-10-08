@@ -92,16 +92,22 @@ class Article < ApplicationRecord
   scope :order_by_views, -> { reorder(views: :desc) }
 
   # AI Agent scopes
-  scope :ai_enabled, -> { where(ai_agent_enabled: true) }
-  scope :by_ai_scope, ->(scope) { where(ai_agent_scope: scope) if scope.present? }
-  scope :for_community_group, ->(group_id) { joins(:community_groups).where(community_groups: { id: group_id }) }
-  scope :for_community, ->(community_id) { joins(:communities).where(communities: { id: community_id }) }
-  scope :for_any_community_groups, lambda { |group_ids|
+  scope :search_by_ai_enabled, lambda { |ai_enabled|
+    return all if ai_enabled.blank?
+
+    ai_enabled == 'true' ? where(ai_agent_enabled: true) : where(ai_agent_enabled: false)
+  }
+  scope :search_by_ai_scope, ->(ai_scope) { where(ai_agent_scope: ai_scope) if ai_scope.present? }
+  scope :search_by_community_groups, lambda { |group_ids|
+    return all if group_ids.blank?
+
     joins(:article_community_groups)
       .where(article_community_groups: { community_group_id: group_ids })
       .distinct
   }
-  scope :for_any_communities, lambda { |community_ids|
+  scope :search_by_communities, lambda { |community_ids|
+    return all if community_ids.blank?
+
     joins(:article_communities)
       .where(article_communities: { community_id: community_ids })
       .distinct
@@ -134,6 +140,10 @@ class Article < ApplicationRecord
     ).search_by_category_slug(
       params[:category_slug]
     ).search_by_locale(params[:locale]).search_by_author(params[:author_id]).search_by_status(params[:status]).search_by_privacy(params[:privacy])
+              .search_by_ai_enabled(params[:ai_enabled])
+              .search_by_ai_scope(params[:ai_scope])
+              .search_by_community_groups(params[:community_group_ids])
+              .search_by_communities(params[:community_ids])
 
     records = records.text_search(params[:query]) if params[:query].present?
     records

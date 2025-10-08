@@ -96,7 +96,8 @@ class Api::V1::Accounts::ArticlesController < Api::V1::Accounts::BaseController
   end
 
   def list_params
-    params.permit(:locale, :query, :page, :category_slug, :status, :author_id, :privacy)
+    params.permit(:locale, :query, :page, :category_slug, :status, :author_id, :privacy,
+                  :ai_enabled, :ai_scope, community_group_ids: [], community_ids: [])
   end
 
   def set_current_page

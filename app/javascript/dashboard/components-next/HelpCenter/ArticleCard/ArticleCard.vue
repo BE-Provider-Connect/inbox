@@ -8,6 +8,7 @@ import {
   ARTICLE_MENU_OPTIONS,
   ARTICLE_STATUSES,
 } from 'dashboard/helper/portalHelper';
+import { useAiAgentLabel } from 'dashboard/composables/useAiAgentLabel';
 
 import Icon from 'dashboard/components-next/icon/Icon.vue';
 import CardLayout from 'dashboard/components-next/CardLayout.vue';
@@ -47,6 +48,22 @@ const props = defineProps({
   isPrivate: {
     type: Boolean,
     default: false,
+  },
+  aiAgentEnabled: {
+    type: Boolean,
+    default: false,
+  },
+  aiAgentScope: {
+    type: String,
+    default: '',
+  },
+  communityGroups: {
+    type: Array,
+    default: () => [],
+  },
+  communities: {
+    type: Array,
+    default: () => [],
   },
 });
 
@@ -115,6 +132,15 @@ const authorThumbnailSrc = computed(() => {
 const lastUpdatedAt = computed(() => {
   return dynamicTime(props.updatedAt);
 });
+
+const aiAgentConfig = computed(() => ({
+  enabled: props.aiAgentEnabled,
+  scope: props.aiAgentScope,
+  communityGroups: props.communityGroups,
+  communities: props.communities,
+}));
+
+const { label: aiAgentLabel } = useAiAgentLabel(aiAgentConfig);
 
 const handleArticleAction = ({ action, value }) => {
   toggleDropdown(false);
@@ -191,6 +217,17 @@ const handleClick = id => {
                 ? $t('HELP_CENTER.ARTICLE.PRIVATE')
                 : $t('HELP_CENTER.ARTICLE.PUBLIC')
             }}
+          </span>
+        </div>
+        <div
+          class="inline-flex items-center gap-1 text-n-slate-11 whitespace-nowrap"
+        >
+          <Icon
+            :icon="aiAgentEnabled ? 'i-lucide-bot' : 'i-lucide-bot-off'"
+            class="size-4"
+          />
+          <span class="text-sm">
+            {{ aiAgentLabel }}
           </span>
         </div>
         <div

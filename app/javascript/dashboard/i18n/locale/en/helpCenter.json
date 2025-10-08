@@ -90,6 +90,9 @@
     "ARTICLE": {
       "PUBLIC": "Public",
       "PRIVATE": "Private",
+      "AI_ON": "AI Agent: On",
+      "AI_OFF": "AI Agent: Off",
+      "AI_ON_ORGANIZATION": "AI Agent: On Organization",
       "AI_AGENT": {
         "TITLE": "AI Agent",
         "ENABLE_LABEL": "Enable AI Agent",
@@ -531,7 +534,7 @@
       },
       "ARTICLES_HEADER": {
         "TABS": {
-          "ALL": "All articles",
+          "ALL": "Any status",
           "MINE": "Mine",
           "DRAFT": "Draft",
           "PUBLISHED": "Published",
@@ -547,6 +550,24 @@
           "ALL": "All locales"
         },
         "NEW_ARTICLE": "New article"
+      },
+      "AI_FILTER": {
+        "TITLE": "AI configuration",
+        "STATUS": "AI Status",
+        "SELECT_STATUS": "Select AI status",
+        "ALL": "Any status",
+        "ENABLED": "AI on",
+        "DISABLED": "AI off",
+        "SCOPE": "AI Scope",
+        "SELECT_SCOPE": "Select scope",
+        "ALL_SCOPES": "Any scope",
+        "ORGANIZATION": "Organization",
+        "COMMUNITY_GROUP": "Community group",
+        "COMMUNITY": "Community",
+        "SELECT_GROUPS": "Select community group",
+        "SELECT_COMMUNITIES": "Select community",
+        "APPLY": "Apply Filters",
+        "CLEAR": "Clear"
       },
       "EMPTY_STATE": {
         "ALL": {
