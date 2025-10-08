@@ -329,6 +329,11 @@ Rails.application.routes.draw do
         resources :webhooks, only: [:create]
       end
 
+      # Service-to-service sync endpoints for Citadel
+      namespace :sync do
+        resources :articles, only: [:index, :show]
+      end
+
       # Frontend API endpoint to trigger SAML authentication flow
       post 'auth/saml_login', to: 'auth#saml_login'
 
