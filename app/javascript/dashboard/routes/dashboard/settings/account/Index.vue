@@ -46,6 +46,7 @@ export default {
       locale: 'en',
       domain: '',
       supportEmail: '',
+      externalId: '',
       features: {},
     };
   },
@@ -108,8 +109,15 @@ export default {
   methods: {
     async initializeAccount() {
       try {
-        const { name, locale, id, domain, support_email, features } =
-          this.getAccount(this.accountId);
+        const {
+          name,
+          locale,
+          id,
+          domain,
+          support_email,
+          external_id,
+          features,
+        } = this.getAccount(this.accountId);
 
         this.$root.$i18n.locale = this.uiSettings?.locale || locale;
         this.name = name;
@@ -117,6 +125,7 @@ export default {
         this.id = id;
         this.domain = domain;
         this.supportEmail = support_email;
+        this.externalId = external_id;
         this.features = features;
       } catch (error) {
         // Ignore error
@@ -135,6 +144,7 @@ export default {
           name: this.name,
           domain: this.domain,
           support_email: this.supportEmail,
+          external_id: this.externalId,
         });
         // If user locale is set, update the locale with user locale
         if (this.uiSettings?.locale) {
@@ -227,6 +237,14 @@ export default {
               :placeholder="
                 $t('GENERAL_SETTINGS.FORM.SUPPORT_EMAIL.PLACEHOLDER')
               "
+            />
+          </WithLabel>
+          <WithLabel :label="$t('GENERAL_SETTINGS.FORM.EXTERNAL_ID.LABEL')">
+            <NextInput
+              v-model="externalId"
+              type="text"
+              class="w-full"
+              :placeholder="$t('GENERAL_SETTINGS.FORM.EXTERNAL_ID.PLACEHOLDER')"
             />
           </WithLabel>
           <div>
