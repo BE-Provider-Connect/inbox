@@ -2,6 +2,7 @@ require 'rails_helper'
 
 RSpec.describe 'Sync Articles API', type: :request do
   let(:account) { create(:account) }
+  let(:valid_api_key) { 'test-api-key-123' }
   let(:portal) { create(:portal, account: account) }
   let(:category) { create(:category, portal: portal) }
   let(:author) { create(:user, account: account) }
@@ -19,7 +20,7 @@ RSpec.describe 'Sync Articles API', type: :request do
            communities: [community])
   end
 
-  let!(:published_article_without_ai) do
+  let(:published_article_without_ai) do
     create(:article,
            portal: portal,
            category: category,
@@ -28,7 +29,7 @@ RSpec.describe 'Sync Articles API', type: :request do
            ai_agent_enabled: false)
   end
 
-  let!(:draft_article_with_ai) do
+  let(:draft_article_with_ai) do
     create(:article,
            portal: portal,
            category: category,
@@ -38,9 +39,10 @@ RSpec.describe 'Sync Articles API', type: :request do
            ai_agent_scope: :organization)
   end
 
-  let(:valid_api_key) { 'test-api-key-123' }
-
   before do
+    # Create articles that need to exist for filtering tests
+    published_article_without_ai
+    draft_article_with_ai
     ENV['CITADEL_API_KEY'] = valid_api_key
   end
 
@@ -52,7 +54,7 @@ RSpec.describe 'Sync Articles API', type: :request do
             as: :json
 
         expect(response).to have_http_status(:success)
-        json = JSON.parse(response.body)
+        json = response.parsed_body
 
         expect(json['articles'].size).to eq(1)
         expect(json['articles'][0]['id']).to eq(published_article_with_ai.id)
@@ -64,7 +66,7 @@ RSpec.describe 'Sync Articles API', type: :request do
             headers: { 'X-API-Key' => valid_api_key },
             as: :json
 
-        json = JSON.parse(response.body)
+        json = response.parsed_body
         article_json = json['articles'][0]
 
         expect(article_json).to have_key('author')
@@ -82,7 +84,7 @@ RSpec.describe 'Sync Articles API', type: :request do
             headers: { 'X-API-Key' => valid_api_key },
             as: :json
 
-        json = JSON.parse(response.body)
+        json = response.parsed_body
 
         expect(json['meta']).to include(
           'total' => 1,
@@ -108,7 +110,7 @@ RSpec.describe 'Sync Articles API', type: :request do
             headers: { 'X-API-Key' => valid_api_key },
             as: :json
 
-        json = JSON.parse(response.body)
+        json = response.parsed_body
         expect(json['articles'].size).to eq(1)
         expect(json['articles'][0]['id']).to eq(recent_article.id)
       end
@@ -129,7 +131,7 @@ RSpec.describe 'Sync Articles API', type: :request do
             headers: { 'X-API-Key' => valid_api_key },
             as: :json
 
-        json = JSON.parse(response.body)
+        json = response.parsed_body
         expect(json['articles'].size).to eq(1)
         expect(json['articles'][0]['id']).to eq(another_article.id)
       end
@@ -152,7 +154,7 @@ RSpec.describe 'Sync Articles API', type: :request do
             as: :json
 
         expect(response).to have_http_status(:unauthorized)
-        json = JSON.parse(response.body)
+        json = response.parsed_body
         expect(json['error']).to eq('Unauthorized')
       end
     end
@@ -174,7 +176,7 @@ RSpec.describe 'Sync Articles API', type: :request do
             as: :json
 
         expect(response).to have_http_status(:success)
-        json = JSON.parse(response.body)
+        json = response.parsed_body
 
         expect(json['article']['id']).to eq(published_article_with_ai.id)
         expect(json['article']['title']).to eq(published_article_with_ai.title)
