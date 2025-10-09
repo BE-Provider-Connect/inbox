@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe Api::V1::Sync::ArticlesController, type: :controller do
+RSpec.describe 'Sync Articles API', type: :request do
   let(:account) { create(:account) }
   let(:portal) { create(:portal, account: account) }
   let(:category) { create(:category, portal: portal) }
@@ -47,8 +47,9 @@ RSpec.describe Api::V1::Sync::ArticlesController, type: :controller do
   describe 'GET #index' do
     context 'with valid API key' do
       it 'returns only published articles with AI enabled' do
-        request.headers['X-API-Key'] = valid_api_key
-        get :index
+        get '/api/v1/sync/articles',
+            headers: { 'X-API-Key' => valid_api_key },
+            as: :json
 
         expect(response).to have_http_status(:success)
         json = JSON.parse(response.body)
@@ -59,8 +60,9 @@ RSpec.describe Api::V1::Sync::ArticlesController, type: :controller do
       end
 
       it 'includes article associations' do
-        request.headers['X-API-Key'] = valid_api_key
-        get :index
+        get '/api/v1/sync/articles',
+            headers: { 'X-API-Key' => valid_api_key },
+            as: :json
 
         json = JSON.parse(response.body)
         article_json = json['articles'][0]
@@ -75,8 +77,10 @@ RSpec.describe Api::V1::Sync::ArticlesController, type: :controller do
       end
 
       it 'supports pagination' do
-        request.headers['X-API-Key'] = valid_api_key
-        get :index, params: { limit: 10, offset: 0 }
+        get '/api/v1/sync/articles',
+            params: { limit: 10, offset: 0 },
+            headers: { 'X-API-Key' => valid_api_key },
+            as: :json
 
         json = JSON.parse(response.body)
 
@@ -99,8 +103,10 @@ RSpec.describe Api::V1::Sync::ArticlesController, type: :controller do
                                 ai_agent_scope: :organization,
                                 updated_at: 1.hour.ago)
 
-        request.headers['X-API-Key'] = valid_api_key
-        get :index, params: { updated_since: 1.day.ago.iso8601 }
+        get '/api/v1/sync/articles',
+            params: { updated_since: 1.day.ago.iso8601 },
+            headers: { 'X-API-Key' => valid_api_key },
+            as: :json
 
         json = JSON.parse(response.body)
         expect(json['articles'].size).to eq(1)
@@ -118,8 +124,10 @@ RSpec.describe Api::V1::Sync::ArticlesController, type: :controller do
                                  ai_agent_enabled: true,
                                  ai_agent_scope: :organization)
 
-        request.headers['X-API-Key'] = valid_api_key
-        get :index, params: { account_ids: [another_account.id] }
+        get '/api/v1/sync/articles',
+            params: { account_ids: [another_account.id] },
+            headers: { 'X-API-Key' => valid_api_key },
+            as: :json
 
         json = JSON.parse(response.body)
         expect(json['articles'].size).to eq(1)
@@ -129,8 +137,9 @@ RSpec.describe Api::V1::Sync::ArticlesController, type: :controller do
 
     context 'with Authorization header' do
       it 'accepts Bearer token format' do
-        request.headers['Authorization'] = "Bearer #{valid_api_key}"
-        get :index
+        get '/api/v1/sync/articles',
+            headers: { 'Authorization' => "Bearer #{valid_api_key}" },
+            as: :json
 
         expect(response).to have_http_status(:success)
       end
@@ -138,8 +147,9 @@ RSpec.describe Api::V1::Sync::ArticlesController, type: :controller do
 
     context 'with invalid API key' do
       it 'returns unauthorized' do
-        request.headers['X-API-Key'] = 'invalid-key'
-        get :index
+        get '/api/v1/sync/articles',
+            headers: { 'X-API-Key' => 'invalid-key' },
+            as: :json
 
         expect(response).to have_http_status(:unauthorized)
         json = JSON.parse(response.body)
@@ -149,7 +159,7 @@ RSpec.describe Api::V1::Sync::ArticlesController, type: :controller do
 
     context 'without API key' do
       it 'returns unauthorized' do
-        get :index
+        get '/api/v1/sync/articles', as: :json
 
         expect(response).to have_http_status(:unauthorized)
       end
@@ -159,8 +169,9 @@ RSpec.describe Api::V1::Sync::ArticlesController, type: :controller do
   describe 'GET #show' do
     context 'with valid API key' do
       it 'returns the specific article' do
-        request.headers['X-API-Key'] = valid_api_key
-        get :show, params: { id: published_article_with_ai.id }
+        get "/api/v1/sync/articles/#{published_article_with_ai.id}",
+            headers: { 'X-API-Key' => valid_api_key },
+            as: :json
 
         expect(response).to have_http_status(:success)
         json = JSON.parse(response.body)
@@ -170,8 +181,9 @@ RSpec.describe Api::V1::Sync::ArticlesController, type: :controller do
       end
 
       it 'returns 404 for non-existent article' do
-        request.headers['X-API-Key'] = valid_api_key
-        get :show, params: { id: 999_999 }
+        get '/api/v1/sync/articles/999999',
+            headers: { 'X-API-Key' => valid_api_key },
+            as: :json
 
         expect(response).to have_http_status(:not_found)
       end
@@ -179,7 +191,8 @@ RSpec.describe Api::V1::Sync::ArticlesController, type: :controller do
 
     context 'without valid API key' do
       it 'returns unauthorized' do
-        get :show, params: { id: published_article_with_ai.id }
+        get "/api/v1/sync/articles/#{published_article_with_ai.id}",
+            as: :json
 
         expect(response).to have_http_status(:unauthorized)
       end
