@@ -441,6 +441,75 @@ RSpec.describe 'Inboxes API', type: :request do
         json_response = response.parsed_body
         expect(json_response['allow_messages_after_resolved']).to be true
       end
+
+      context 'with Citadel AI integration' do
+        let!(:citadel_bot) { create(:agent_bot, name: 'Citadel AI', account_id: nil, outgoing_url: 'ENV:CITADEL_API_ENDPOINT') }
+
+        before do
+          account.enable_features('citadel_ai')
+          account.save!
+          ENV['CITADEL_API_ENDPOINT'] = 'https://citadel.test/webhook'
+        end
+
+        after do
+          ENV['CITADEL_API_ENDPOINT'] = nil
+        end
+
+        it 'creates inbox with Citadel enabled when citadel_enabled is true' do
+          params = valid_params.merge(citadel_enabled: true)
+
+          post "/api/v1/accounts/#{account.id}/inboxes",
+               headers: admin.create_new_auth_token,
+               params: params,
+               as: :json
+
+          expect(response).to have_http_status(:success)
+          inbox = Inbox.find(response.parsed_body['id'])
+          expect(inbox.agent_bot_inbox&.agent_bot).to eq(citadel_bot)
+        end
+
+        it 'creates inbox without Citadel when citadel_enabled is false' do
+          params = valid_params.merge(citadel_enabled: false)
+
+          post "/api/v1/accounts/#{account.id}/inboxes",
+               headers: admin.create_new_auth_token,
+               params: params,
+               as: :json
+
+          expect(response).to have_http_status(:success)
+          inbox = Inbox.find(response.parsed_body['id'])
+          expect(inbox.agent_bot_inbox&.agent_bot).not_to eq(citadel_bot)
+        end
+
+        it 'creates inbox without Citadel when feature is disabled' do
+          account.disable_features('citadel_ai')
+          account.save!
+          params = valid_params.merge(citadel_enabled: true)
+
+          post "/api/v1/accounts/#{account.id}/inboxes",
+               headers: admin.create_new_auth_token,
+               params: params,
+               as: :json
+
+          expect(response).to have_http_status(:success)
+          inbox = Inbox.find(response.parsed_body['id'])
+          expect(inbox.agent_bot_inbox&.agent_bot).not_to eq(citadel_bot)
+        end
+
+        it 'creates inbox without Citadel when ENV is not configured' do
+          ENV['CITADEL_API_ENDPOINT'] = nil
+          params = valid_params.merge(citadel_enabled: true)
+
+          post "/api/v1/accounts/#{account.id}/inboxes",
+               headers: admin.create_new_auth_token,
+               params: params,
+               as: :json
+
+          expect(response).to have_http_status(:success)
+          inbox = Inbox.find(response.parsed_body['id'])
+          expect(inbox.agent_bot_inbox&.agent_bot).not_to eq(citadel_bot)
+        end
+      end
     end
   end
 
@@ -802,6 +871,104 @@ RSpec.describe 'Inboxes API', type: :request do
           expect(found_inbox['csat_survey_enabled']).to be true
           expect(found_inbox['csat_config']).to be_present
           expect(found_inbox['csat_config']['display_type']).to eq('emoji')
+        end
+      end
+
+      context 'with Citadel AI integration' do
+        let!(:citadel_bot) { create(:agent_bot, name: 'Citadel AI', account_id: nil, outgoing_url: 'ENV:CITADEL_API_ENDPOINT') }
+
+        before do
+          account.enable_features('citadel_ai')
+          account.save!
+          ENV['CITADEL_API_ENDPOINT'] = 'https://citadel.test/webhook'
+        end
+
+        after do
+          ENV['CITADEL_API_ENDPOINT'] = nil
+        end
+
+        it 'enables Citadel for the inbox when citadel_enabled is true' do
+          patch "/api/v1/accounts/#{account.id}/inboxes/#{inbox.id}",
+                headers: admin.create_new_auth_token,
+                params: { citadel_enabled: true },
+                as: :json
+
+          expect(response).to have_http_status(:success)
+          inbox.reload
+          expect(inbox.agent_bot_inbox&.agent_bot).to eq(citadel_bot)
+        end
+
+        it 'disables Citadel for the inbox when citadel_enabled is false' do
+          # First enable Citadel
+          AgentBotInbox.create!(
+            inbox: inbox,
+            agent_bot: citadel_bot,
+            account_id: account.id,
+            status: 'active'
+          )
+
+          patch "/api/v1/accounts/#{account.id}/inboxes/#{inbox.id}",
+                headers: admin.create_new_auth_token,
+                params: { citadel_enabled: false },
+                as: :json
+
+          expect(response).to have_http_status(:success)
+          inbox.reload
+          expect(inbox.agent_bot_inbox&.agent_bot).not_to eq(citadel_bot)
+        end
+
+        it 'replaces existing bot with Citadel when enabling' do
+          # Add another bot first
+          other_bot = create(:agent_bot, account: account)
+          AgentBotInbox.create!(
+            inbox: inbox,
+            agent_bot: other_bot,
+            account_id: account.id,
+            status: 'active'
+          )
+
+          patch "/api/v1/accounts/#{account.id}/inboxes/#{inbox.id}",
+                headers: admin.create_new_auth_token,
+                params: { citadel_enabled: true },
+                as: :json
+
+          expect(response).to have_http_status(:success)
+          inbox.reload
+          expect(inbox.agent_bot_inbox&.agent_bot).not_to eq(other_bot)
+          expect(inbox.agent_bot_inbox&.agent_bot).to eq(citadel_bot)
+        end
+
+        it 'does not affect Citadel status when citadel_enabled is not provided' do
+          # Enable Citadel first
+          AgentBotInbox.create!(
+            inbox: inbox,
+            agent_bot: citadel_bot,
+            account_id: account.id,
+            status: 'active'
+          )
+
+          patch "/api/v1/accounts/#{account.id}/inboxes/#{inbox.id}",
+                headers: admin.create_new_auth_token,
+                params: { name: 'Updated Name' },
+                as: :json
+
+          expect(response).to have_http_status(:success)
+          inbox.reload
+          expect(inbox.agent_bot_inbox&.agent_bot).to eq(citadel_bot)
+        end
+
+        it 'ignores citadel_enabled when feature is disabled' do
+          account.disable_features('citadel_ai')
+          account.save!
+
+          patch "/api/v1/accounts/#{account.id}/inboxes/#{inbox.id}",
+                headers: admin.create_new_auth_token,
+                params: { citadel_enabled: true },
+                as: :json
+
+          expect(response).to have_http_status(:success)
+          inbox.reload
+          expect(inbox.agent_bot_inbox&.agent_bot).not_to eq(citadel_bot)
         end
       end
     end

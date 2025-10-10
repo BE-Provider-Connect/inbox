@@ -30,24 +30,32 @@ class Api::V1::Accounts::InboxesController < Api::V1::Accounts::BaseController
   def create
     ActiveRecord::Base.transaction do
       channel = create_channel
+      inbox_params = permitted_params.except(:channel)
+      citadel_enabled = inbox_params.delete(:citadel_enabled)
+
       @inbox = Current.account.inboxes.build(
         {
           name: inbox_name(channel),
           channel: channel
-        }.merge(
-          permitted_params.except(:channel)
-        )
+        }.merge(inbox_params)
       )
       @inbox.save!
+
+      # Enable Citadel if requested and available
+      enable_citadel_for_inbox if citadel_enabled && citadel_available?
     end
   end
 
   def update
     inbox_params = permitted_params.except(:channel, :csat_config)
+    citadel_enabled = inbox_params.delete(:citadel_enabled)
     inbox_params[:csat_config] = format_csat_config(permitted_params[:csat_config]) if permitted_params[:csat_config].present?
     @inbox.update!(inbox_params)
     update_inbox_working_hours
     update_channel if channel_update_required?
+
+    # Handle Citadel toggle if provided
+    handle_citadel_toggle(citadel_enabled) unless citadel_enabled.nil?
   end
 
   def agent_bot
@@ -165,7 +173,7 @@ class Api::V1::Accounts::InboxesController < Api::V1::Accounts::BaseController
   def inbox_attributes
     [:name, :avatar, :greeting_enabled, :greeting_message, :enable_email_collect, :csat_survey_enabled,
      :enable_auto_assignment, :working_hours_enabled, :out_of_office_message, :timezone, :allow_messages_after_resolved,
-     :lock_to_single_conversation, :portal_id, :sender_name_type, :business_name,
+     :lock_to_single_conversation, :portal_id, :sender_name_type, :business_name, :citadel_enabled,
      { csat_config: [:display_type, :message, { survey_rules: [:operator, { values: [] }] }] }]
   end
 
@@ -208,6 +216,46 @@ class Api::V1::Accounts::InboxesController < Api::V1::Accounts::BaseController
       Channels::Whatsapp::TemplatesSyncJob.perform_later(@inbox.channel)
     elsif @inbox.twilio? && @inbox.channel.whatsapp?
       Channels::Twilio::TemplatesSyncJob.perform_later(@inbox.channel)
+    end
+  end
+
+  # Citadel AI helper methods
+  def citadel_available?
+    Current.account.feature_enabled?('citadel_ai') &&
+      ENV['CITADEL_API_ENDPOINT'].present? &&
+      citadel_bot.present?
+  end
+
+  def citadel_bot
+    @citadel_bot ||= AgentBot.find_by(name: 'Citadel AI', account_id: nil)
+  end
+
+  def enable_citadel_for_inbox
+    return unless citadel_bot
+
+    # Remove any existing bot first (only one bot per inbox)
+    @inbox.agent_bot_inbox&.destroy
+
+    # Create new association with Citadel
+    AgentBotInbox.create!(
+      inbox: @inbox,
+      agent_bot: citadel_bot,
+      account_id: @inbox.account_id,
+      status: 'active'
+    )
+  end
+
+  def disable_citadel_for_inbox
+    @inbox.agent_bot_inbox.destroy if @inbox.agent_bot_inbox&.agent_bot == citadel_bot
+  end
+
+  def handle_citadel_toggle(enabled)
+    return unless citadel_available?
+
+    if enabled
+      enable_citadel_for_inbox
+    else
+      disable_citadel_for_inbox
     end
   end
 end

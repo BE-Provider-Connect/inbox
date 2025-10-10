@@ -247,6 +247,22 @@
   type: code
 # ------- End of Chatwoot Internal Config for Cloud ----#
 
+# ------- Citadel AI Configuration ----#
+- name: CITADEL_API_ENDPOINT
+  display_title: Citadel AI API Endpoint
+  value:
+  description: 'The endpoint URL for your Citadel AI service'
+  type: text
+  premium: false
+  locked: false
+- name: CITADEL_API_KEY
+  display_title: Citadel AI API Key
+  value:
+  description: 'Authentication key for Citadel AI API'
+  type: secret
+  premium: false
+  locked: false
+
 # ------- Chatwoot Internal Config for Self Hosted ----#
 - name: INSTALLATION_PRICING_PLAN
   value: 'community'

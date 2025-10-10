@@ -48,6 +48,11 @@
 - name: team_management
   display_name: Team Management
   enabled: true
+- name: citadel_ai
+  display_name: Citadel AI Assistant
+  enabled: false
+  premium: false
+  help_url: https://citadel.ai/docs
   help_url: https://chwt.app/hc/teams
 - name: inbox_management
   display_name: Inbox Management

@@ -2,7 +2,7 @@ class Webhooks::Trigger
   SUPPORTED_ERROR_HANDLE_EVENTS = %w[message_created message_updated].freeze
 
   def initialize(url, payload, webhook_type)
-    @url = url
+    @url = resolve_url(url)
     @payload = payload
     @webhook_type = webhook_type
   end
@@ -19,6 +19,19 @@ class Webhooks::Trigger
   end
 
   private
+
+  def resolve_url(url)
+    # Handle ENV variable placeholders
+    if url.start_with?('ENV:')
+      env_key = url.sub('ENV:', '')
+      resolved = ENV.fetch(env_key, nil)
+      raise "Missing ENV variable: #{env_key}" if resolved.blank?
+
+      resolved
+    else
+      url
+    end
+  end
 
   def perform_request
     RestClient::Request.execute(
