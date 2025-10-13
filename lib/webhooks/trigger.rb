@@ -21,11 +21,16 @@ class Webhooks::Trigger
   private
 
   def perform_request
+    headers = { content_type: :json, accept: :json }
+
+    # Add API key header for Citadel webhooks
+    headers['X-Api-Key'] = ENV.fetch('CITADEL_API_KEY', nil) if @url.include?('citadel') || @url.include?(ENV['CITADEL_API_WEBHOOK_URL'].to_s)
+
     RestClient::Request.execute(
       method: :post,
       url: @url,
       payload: @payload.to_json,
-      headers: { content_type: :json, accept: :json },
+      headers: headers,
       timeout: 5
     )
   end

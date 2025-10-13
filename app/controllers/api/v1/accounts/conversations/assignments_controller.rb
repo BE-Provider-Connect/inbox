@@ -2,7 +2,7 @@ class Api::V1::Accounts::Conversations::AssignmentsController < Api::V1::Account
   # assigns agent/team to a conversation
   def create
     if params.key?(:assignee_id)
-      set_agent
+      set_assignee
     elsif params.key?(:team_id)
       set_team
     else
@@ -12,8 +12,17 @@ class Api::V1::Accounts::Conversations::AssignmentsController < Api::V1::Account
 
   private
 
-  def set_agent
-    @agent = Current.account.users.find_by(id: params[:assignee_id])
+  def set_assignee
+    assignee_id = params[:assignee_id]
+
+    # Handle Assistant assignment (ID format: "assistant_1")
+    if assignee_id.to_s.start_with?('assistant_') || params[:assignee_type] == 'Assistant'
+      assistant_id = assignee_id.to_s.gsub('assistant_', '')
+      @agent = Assistant.find(assistant_id)
+    else
+      @agent = Current.account.users.find_by(id: assignee_id)
+    end
+
     @conversation.assignee = @agent
     @conversation.save!
     render_agent
@@ -22,6 +31,8 @@ class Api::V1::Accounts::Conversations::AssignmentsController < Api::V1::Account
   def render_agent
     if @agent.nil?
       render json: nil
+    elsif @agent.is_a?(Assistant)
+      render partial: 'api/v1/models/assistant', formats: [:json], locals: { resource: @agent }
     else
       render partial: 'api/v1/models/agent', formats: [:json], locals: { resource: @agent }
     end

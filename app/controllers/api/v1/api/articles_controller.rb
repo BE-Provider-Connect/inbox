@@ -1,8 +1,8 @@
-class Api::V1::Sync::ArticlesController < Api::BaseController
-  include ApiKeyAuthHelper
+class Api::V1::Api::ArticlesController < Api::BaseController
+  include CitadelApiAuthHelper
 
-  skip_before_action :authenticate_user!, :authenticate_access_token!, :validate_bot_access_token!
-  before_action :authenticate_api_key!
+  skip_before_action :authenticate_user!, :validate_bot_access_token!
+  before_action :authenticate_citadel_api!
 
   respond_to :json
 

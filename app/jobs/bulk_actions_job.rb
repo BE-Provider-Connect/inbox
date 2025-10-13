@@ -26,7 +26,20 @@ class BulkActionsJob < ApplicationJob
     records.each do |conversation|
       bulk_add_labels(conversation)
       bulk_snoozed_until(conversation)
-      conversation.update(params) if params
+      handle_assignee_update(conversation, params) if params
+      conversation.update(params.except(:assignee_id, :assignee_type)) if params
+    end
+  end
+
+  def handle_assignee_update(conversation, params)
+    return unless params[:assignee_id]
+
+    # Handle Assistant assignment
+    if params[:assignee_type] == 'Assistant'
+      assignee_id = params[:assignee_id].to_s.gsub('assistant_', '')
+      conversation.assignee = Assistant.find(assignee_id)
+    else
+      conversation.assignee = @account.users.find_by(id: params[:assignee_id])
     end
   end
 

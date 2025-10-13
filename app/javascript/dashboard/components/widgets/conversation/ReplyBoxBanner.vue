@@ -31,10 +31,15 @@ const assignedAgent = computed({
   },
   set(agent) {
     const agentId = agent ? agent.id : 0;
+    // Assistant IDs are prefixed strings like "assistant_1"
+    const isAssistant =
+      String(agentId).startsWith('assistant_') || agent?.type === 'assistant';
+    const assigneeType = isAssistant ? 'Assistant' : 'User';
     store.dispatch('setCurrentChatAssignee', agent);
     store.dispatch('assignAgent', {
       conversationId: currentChat.value?.id,
       agentId,
+      assigneeType,
     });
   },
 });

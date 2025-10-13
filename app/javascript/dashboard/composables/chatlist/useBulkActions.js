@@ -50,12 +50,21 @@ export function useBulkActions() {
   // Same method used in context menu, conversationId being passed from there.
   async function onAssignAgent(agent, conversationId = null) {
     try {
+      const agentId = agent.id;
+      // Assistant IDs are prefixed strings like "assistant_1"
+      const isAssistant =
+        String(agentId).startsWith('assistant_') || agent?.type === 'assistant';
+      const fields = {
+        assignee_id: agentId,
+      };
+      if (isAssistant) {
+        fields.assignee_type = 'Assistant';
+      }
+
       await store.dispatch('bulkActions/process', {
         type: 'Conversation',
         ids: conversationId || selectedConversations.value,
-        fields: {
-          assignee_id: agent.id,
-        },
+        fields,
       });
       store.dispatch('bulkActions/clearSelectedConversationIds');
       if (conversationId) {

@@ -57,6 +57,7 @@ export function useAgentsList(includeNoneAgent = true) {
       agentsByUpdatedPresence
     );
 
+    // The Assistant should already be included in filteredAgentsByAvailability from backend
     return [
       ...(includeNoneAgent && isAgentSelected.value ? [createNoneAgent()] : []),
       ...filteredAgentsByAvailability,

@@ -6,6 +6,8 @@ class Api::V1::Accounts::AgentsController < Api::V1::Accounts::BaseController
 
   def index
     @agents = agents
+    # Include the Assistant singleton in the agents list
+    @assistant = Assistant.instance if Assistant.instance.enabled?
   end
 
   def create

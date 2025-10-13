@@ -177,9 +177,16 @@ export function useConversationHotKeys() {
   });
 
   const onChangeAssignee = action => {
+    const agentId = action.agentInfo.id;
+    // Assistant IDs are prefixed strings like "assistant_1"
+    const isAssistant =
+      String(agentId).startsWith('assistant_') ||
+      action.agentInfo?.type === 'assistant';
+    const assigneeType = isAssistant ? 'Assistant' : 'User';
     store.dispatch('assignAgent', {
       conversationId: currentChat.value.id,
-      agentId: action.agentInfo.id,
+      agentId,
+      assigneeType,
     });
   };
 
