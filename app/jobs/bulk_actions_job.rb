@@ -34,13 +34,14 @@ class BulkActionsJob < ApplicationJob
   def handle_assignee_update(conversation, params)
     return unless params[:assignee_id]
 
-    # Handle Assistant assignment
-    if params[:assignee_type] == 'Assistant'
-      assignee_id = params[:assignee_id].to_s.gsub('assistant_', '')
-      conversation.assignee = Assistant.find(assignee_id)
-    else
-      conversation.assignee = @account.users.find_by(id: params[:assignee_id])
-    end
+    type = (params[:assignee_type] || 'User').to_s.safe_constantize
+    id = params[:assignee_id]
+
+    conversation.assignee = if type == User
+                              @account.users.find_by(id: id)
+                            else
+                              type.find(id)
+                            end
   end
 
   def bulk_remove_labels

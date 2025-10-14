@@ -99,7 +99,6 @@ const showAdvancedFilters = ref(false);
 // chatsOnView is to store the chats that are currently visible on the screen,
 // which mirrors the conversationList.
 const chatsOnView = ref([]);
-const isLoadingMore = ref(false);
 const foldersQuery = ref({});
 const showAddFoldersModal = ref(false);
 const showDeleteFoldersModal = ref(false);
@@ -395,7 +394,7 @@ function emitConversationLoaded() {
 function fetchFilteredConversations(payload) {
   payload = useSnakeCase(payload);
   let page = currentFiltersPage.value + 1;
-  const promise = store
+  store
     .dispatch('fetchFilteredConversations', {
       queryData: filterQueryGenerator(payload),
       page,
@@ -403,13 +402,12 @@ function fetchFilteredConversations(payload) {
     .then(emitConversationLoaded);
 
   showAdvancedFilters.value = false;
-  return promise;
 }
 
 function fetchSavedFilteredConversations(payload) {
   payload = useSnakeCase(payload);
   let page = currentFiltersPage.value + 1;
-  return store
+  store
     .dispatch('fetchFilteredConversations', {
       queryData: payload,
       page,
@@ -568,7 +566,7 @@ function onToggleAdvanceFiltersModal() {
 
 function fetchConversations() {
   store.dispatch('updateChatListFilters', conversationFilters.value);
-  return store.dispatch('fetchAllConversations').then(emitConversationLoaded);
+  store.dispatch('fetchAllConversations').then(emitConversationLoaded);
 }
 
 function resetAndFetchData() {
@@ -588,32 +586,17 @@ function resetAndFetchData() {
 }
 
 function loadMoreConversations() {
-  if (
-    hasCurrentPageEndReached.value ||
-    chatListLoading.value ||
-    isLoadingMore.value
-  ) {
+  if (hasCurrentPageEndReached.value || chatListLoading.value) {
     return;
   }
 
-  isLoadingMore.value = true;
-
-  let loadPromise;
   if (!hasAppliedFiltersOrActiveFolders.value) {
-    loadPromise = fetchConversations();
+    fetchConversations();
   } else if (hasActiveFolders.value) {
-    loadPromise = fetchSavedFilteredConversations(activeFolder.value.query);
-  } else {
-    loadPromise = fetchFilteredConversations(appliedFilters.value);
-  }
-
-  if (loadPromise && loadPromise.finally) {
-    loadPromise.finally(() => {
-      isLoadingMore.value = false;
-    });
-  } else {
-    // If no promise returned, reset immediately
-    isLoadingMore.value = false;
+    const payload = activeFolder.value.query;
+    fetchSavedFilteredConversations(payload);
+  } else if (hasAppliedFilters.value) {
+    fetchFilteredConversations(appliedFilters.value);
   }
 }
 
@@ -824,42 +807,37 @@ provide('assignPriority', assignPriority);
 provide('isConversationSelected', isConversationSelected);
 provide('deleteConversation', handleDelete);
 
-watch(activeTeam, () => resetAndFetchData(), { immediate: false });
+watch(activeTeam, () => resetAndFetchData());
 
 watch(
   computed(() => props.conversationInbox),
-  () => resetAndFetchData(),
-  { immediate: false }
+  () => resetAndFetchData()
 );
 watch(
   computed(() => props.label),
-  () => resetAndFetchData(),
-  { immediate: false }
+  () => resetAndFetchData()
 );
 watch(
   computed(() => props.conversationType),
-  () => resetAndFetchData(),
-  { immediate: false }
+  () => resetAndFetchData()
 );
 
-watch(
-  activeFolder,
-  (newVal, oldVal) => {
-    if (newVal !== oldVal) {
-      store.dispatch('customViews/setActiveConversationFolder', newVal || null);
-      resetAndFetchData();
-    }
-  },
-  { immediate: false }
-);
+watch(activeFolder, (newVal, oldVal) => {
+  if (newVal !== oldVal) {
+    store.dispatch('customViews/setActiveConversationFolder', newVal || null);
+  }
+  resetAndFetchData();
+});
 
-watch(
-  chatLists,
-  () => {
-    chatsOnView.value = conversationList.value;
-  },
-  { flush: 'post' }
-);
+watch(chatLists, () => {
+  chatsOnView.value = conversationList.value;
+});
+
+watch(conversationFilters, (newVal, oldVal) => {
+  if (newVal !== oldVal) {
+    store.dispatch('updateChatListFilters', newVal);
+  }
+});
 </script>
 
 <template>
@@ -986,7 +964,7 @@ watch(
             {{ $t('CHAT_LIST.EOF') }}
           </p>
           <IntersectionObserver
-            v-else-if="conversationList.length > 0"
+            v-else
             :options="intersectionObserverOptions"
             @observed="loadMoreConversations"
           />

@@ -85,11 +85,7 @@ export default {
       },
       set(agent) {
         const agentId = agent ? agent.id : 0;
-        // Assistant IDs are prefixed strings like "assistant_1"
-        const isAssistant =
-          String(agentId).startsWith('assistant_') ||
-          agent?.type === 'assistant';
-        const assigneeType = isAssistant ? 'Assistant' : 'User';
+        const assigneeType = agent?.type === 'assistant' ? 'Assistant' : 'User';
         this.$store.dispatch('setCurrentChatAssignee', agent);
         this.$store
           .dispatch('assignAgent', {

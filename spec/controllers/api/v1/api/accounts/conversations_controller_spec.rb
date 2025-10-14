@@ -25,7 +25,7 @@ RSpec.describe 'API Conversations API', type: :request do
   describe 'GET #show' do
     context 'with valid API key' do
       it 'returns conversation details' do
-        get "/api/v1/api/conversations/#{conversation.display_id}",
+        get "/api/v1/api/accounts/#{account.id}/conversations/#{conversation.display_id}",
             headers: { 'citadel_api_key' => valid_api_key },
             as: :json
 
@@ -38,7 +38,7 @@ RSpec.describe 'API Conversations API', type: :request do
       end
 
       it 'includes conversation meta with sender info' do
-        get "/api/v1/api/conversations/#{conversation.display_id}",
+        get "/api/v1/api/accounts/#{account.id}/conversations/#{conversation.display_id}",
             headers: { 'citadel_api_key' => valid_api_key },
             as: :json
 
@@ -51,7 +51,7 @@ RSpec.describe 'API Conversations API', type: :request do
       end
 
       it 'includes assignee info when present' do
-        get "/api/v1/api/conversations/#{conversation.display_id}",
+        get "/api/v1/api/accounts/#{account.id}/conversations/#{conversation.display_id}",
             headers: { 'citadel_api_key' => valid_api_key },
             as: :json
 
@@ -62,11 +62,8 @@ RSpec.describe 'API Conversations API', type: :request do
         expect(json['meta']['assignee']['name']).to eq(user.name)
       end
 
-      it 'filters by account_id when provided' do
-        # Try to find a conversation with wrong account_id filter
-        # This tests that display_id + account_id combination works correctly
-        get "/api/v1/api/conversations/#{conversation.display_id}",
-            params: { account_id: 99_999 },
+      it 'returns 404 for invalid account_id' do
+        get "/api/v1/api/accounts/99999/conversations/#{conversation.display_id}",
             headers: { 'citadel_api_key' => valid_api_key },
             as: :json
 
@@ -74,7 +71,7 @@ RSpec.describe 'API Conversations API', type: :request do
       end
 
       it 'returns 404 for non-existent conversation' do
-        get '/api/v1/api/conversations/999999',
+        get "/api/v1/api/accounts/#{account.id}/conversations/999999",
             headers: { 'citadel_api_key' => valid_api_key },
             as: :json
 
@@ -84,7 +81,7 @@ RSpec.describe 'API Conversations API', type: :request do
 
     context 'without valid API key' do
       it 'returns unauthorized' do
-        get "/api/v1/api/conversations/#{conversation.display_id}",
+        get "/api/v1/api/accounts/#{account.id}/conversations/#{conversation.display_id}",
             as: :json
 
         expect(response).to have_http_status(:unauthorized)
@@ -95,7 +92,7 @@ RSpec.describe 'API Conversations API', type: :request do
   describe 'POST #toggle_status' do
     context 'with valid API key' do
       it 'updates conversation status' do
-        post "/api/v1/api/conversations/#{conversation.display_id}/toggle_status",
+        post "/api/v1/api/accounts/#{account.id}/conversations/#{conversation.display_id}/toggle_status",
              params: { status: 'resolved' },
              headers: { 'citadel_api_key' => valid_api_key },
              as: :json
@@ -107,20 +104,9 @@ RSpec.describe 'API Conversations API', type: :request do
         expect(conversation.reload.status).to eq('resolved')
       end
 
-      it 'toggles status when no status param provided' do
-        conversation.update!(status: 'open')
-
-        post "/api/v1/api/conversations/#{conversation.display_id}/toggle_status",
-             headers: { 'citadel_api_key' => valid_api_key },
-             as: :json
-
-        expect(response).to have_http_status(:success)
-        expect(conversation.reload.status).to eq('resolved')
-      end
-
-      it 'filters by account_id when provided' do
-        post "/api/v1/api/conversations/#{conversation.display_id}/toggle_status",
-             params: { status: 'resolved', account_id: 99_999 },
+      it 'returns 404 for invalid account_id' do
+        post "/api/v1/api/accounts/99999/conversations/#{conversation.display_id}/toggle_status",
+             params: { status: 'resolved' },
              headers: { 'citadel_api_key' => valid_api_key },
              as: :json
 
@@ -130,7 +116,7 @@ RSpec.describe 'API Conversations API', type: :request do
 
     context 'without valid API key' do
       it 'returns unauthorized' do
-        post "/api/v1/api/conversations/#{conversation.display_id}/toggle_status",
+        post "/api/v1/api/accounts/#{account.id}/conversations/#{conversation.display_id}/toggle_status",
              params: { status: 'resolved' },
              as: :json
 

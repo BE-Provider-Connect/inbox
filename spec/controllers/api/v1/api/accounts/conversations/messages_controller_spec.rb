@@ -80,7 +80,7 @@ RSpec.describe 'API Conversations Messages API', type: :request do
         expect(json['payload'].last['id']).to eq(outgoing_message.id)
       end
 
-      it 'filters by account_id when provided' do
+      it 'returns 404 for invalid account_id' do
         get "/api/v1/api/accounts/99999/conversations/#{conversation.display_id}/messages",
             headers: { 'citadel_api_key' => valid_api_key },
             as: :json
@@ -144,7 +144,7 @@ RSpec.describe 'API Conversations Messages API', type: :request do
         expect(message.content).to eq('Private note')
       end
 
-      it 'filters by account_id when provided' do
+      it 'returns 404 for invalid account_id' do
         post "/api/v1/api/accounts/99999/conversations/#{conversation.display_id}/messages",
              params: {
                content: 'Test message',

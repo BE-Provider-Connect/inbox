@@ -17,7 +17,7 @@ RSpec.describe Assistant do
 
   describe '#webhook_url' do
     it 'returns the webhook URL from environment' do
-      allow(ENV).to receive(:[]).with('CITADEL_API_WEBHOOK_URL').and_return('https://api.citadel.ai/webhook')
+      stub_const('ENV', ENV.to_hash.merge('CITADEL_API_WEBHOOK_URL' => 'https://api.citadel.ai/webhook'))
       assistant = described_class.instance
       expect(assistant.webhook_url).to eq('https://api.citadel.ai/webhook')
     end
@@ -25,7 +25,7 @@ RSpec.describe Assistant do
 
   describe '#outgoing_url' do
     it 'aliases to webhook_url for compatibility' do
-      allow(ENV).to receive(:[]).with('CITADEL_API_WEBHOOK_URL').and_return('https://api.citadel.ai/webhook')
+      stub_const('ENV', ENV.to_hash.merge('CITADEL_API_WEBHOOK_URL' => 'https://api.citadel.ai/webhook'))
       assistant = described_class.instance
       expect(assistant.outgoing_url).to eq(assistant.webhook_url)
     end

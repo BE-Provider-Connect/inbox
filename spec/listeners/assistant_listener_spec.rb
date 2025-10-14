@@ -28,7 +28,7 @@ describe AssistantListener do
 
       it 'triggers webhook for new message' do
         expect(AgentBots::WebhookJob).to receive(:perform_later)
-          .with('https://api.citadel.ai/webhook', hash_including(event: 'message_created'))
+          .with('https://api.citadel.ai/webhook', hash_including(event: 'message_created'), :assistant_webhook)
 
         listener.message_created(event_obj)
       end
@@ -79,7 +79,7 @@ describe AssistantListener do
 
       it 'triggers webhook' do
         expect(AgentBots::WebhookJob).to receive(:perform_later)
-          .with('https://api.citadel.ai/webhook', hash_including(event: 'assignee_changed'))
+          .with('https://api.citadel.ai/webhook', hash_including(event: 'assignee_changed'), :assistant_webhook)
 
         listener.assignee_changed(event_obj)
       end
@@ -113,7 +113,7 @@ describe AssistantListener do
 
     it 'triggers webhook for non-web-widget inboxes regardless of hmac_verified' do
       expect(AgentBots::WebhookJob).to receive(:perform_later)
-        .with('https://api.citadel.ai/webhook', hash_including(event: 'message_created'))
+        .with('https://api.citadel.ai/webhook', hash_including(event: 'message_created'), :assistant_webhook)
 
       listener.message_created(event_obj)
     end

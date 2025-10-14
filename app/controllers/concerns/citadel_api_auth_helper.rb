@@ -1,23 +1,13 @@
 module CitadelApiAuthHelper
   def authenticate_citadel_api!
-    api_key = request.headers[:citadel_api_key] || request.headers[:HTTP_CITADEL_API_KEY]
+    api_key = request.headers['citadel_api_key']
 
-    if api_key.blank?
-      render_unauthorized('Missing Citadel API key')
-      return
-    end
+    return render_unauthorized('Missing Citadel API key') if api_key.blank?
 
     stored_key = ENV.fetch('CITADEL_API_KEY', nil)
 
-    if stored_key.blank?
-      render_unauthorized('Citadel API key not configured')
-      return
-    end
-
-    unless ActiveSupport::SecurityUtils.secure_compare(api_key, stored_key)
-      render_unauthorized('Invalid Citadel API key')
-      return
-    end
+    return render_unauthorized('Citadel API key not configured') if stored_key.blank?
+    return render_unauthorized('Invalid Citadel API key') unless ActiveSupport::SecurityUtils.secure_compare(api_key, stored_key)
 
     # Mark this as a system-level API request
     @citadel_api_request = true

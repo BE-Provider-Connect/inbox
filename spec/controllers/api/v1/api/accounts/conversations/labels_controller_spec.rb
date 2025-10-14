@@ -34,7 +34,7 @@ RSpec.describe 'API Conversations Labels API', type: :request do
         expect(conversation.reload.label_list).to match_array(%w[bug urgent])
       end
 
-      it 'replaces existing labels' do
+      it 'adds to existing labels' do
         conversation.add_labels(['old-label'])
 
         post "/api/v1/api/accounts/#{account.id}/conversations/#{conversation.display_id}/labels",
@@ -45,11 +45,11 @@ RSpec.describe 'API Conversations Labels API', type: :request do
         expect(response).to have_http_status(:success)
         json = response.parsed_body
 
-        expect(json['labels']).to eq(['new-label'])
-        expect(conversation.reload.label_list).to eq(['new-label'])
+        expect(json['labels']).to match_array(%w[old-label new-label])
+        expect(conversation.reload.label_list).to match_array(%w[old-label new-label])
       end
 
-      it 'handles empty labels array' do
+      it 'does not modify labels when array is empty' do
         conversation.add_labels(%w[label1 label2])
 
         post "/api/v1/api/accounts/#{account.id}/conversations/#{conversation.display_id}/labels",
@@ -60,11 +60,11 @@ RSpec.describe 'API Conversations Labels API', type: :request do
         expect(response).to have_http_status(:success)
         json = response.parsed_body
 
-        expect(json['labels']).to eq([])
-        expect(conversation.reload.label_list).to eq([])
+        expect(json['labels']).to match_array(%w[label1 label2])
+        expect(conversation.reload.label_list).to match_array(%w[label1 label2])
       end
 
-      it 'filters by account_id when provided' do
+      it 'returns 404 for invalid account_id' do
         post "/api/v1/api/accounts/99999/conversations/#{conversation.display_id}/labels",
              params: { labels: ['test'] },
              headers: { 'citadel_api_key' => valid_api_key },

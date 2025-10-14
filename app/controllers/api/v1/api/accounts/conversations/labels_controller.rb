@@ -1,4 +1,4 @@
-class Api::V1::Api::Conversations::AssignmentsController < Api::BaseController
+class Api::V1::Api::Accounts::Conversations::LabelsController < Api::BaseController
   include CitadelApiAuthHelper
 
   skip_before_action :authenticate_user!, :validate_bot_access_token!
@@ -8,9 +8,8 @@ class Api::V1::Api::Conversations::AssignmentsController < Api::BaseController
   respond_to :json
 
   def create
-    assignee = params[:assignee_id].present? ? User.find_by(id: params[:assignee_id]) : nil
-    @conversation.update!(assignee: assignee)
-    render json: { assignee_id: @conversation.assignee_id }
+    @conversation.add_labels(permitted_params[:labels])
+    @labels = @conversation.label_list
   end
 
   private
@@ -21,5 +20,9 @@ class Api::V1::Api::Conversations::AssignmentsController < Api::BaseController
     @conversation = Conversation.find_by(display_id: params[:conversation_id], account_id: params[:account_id])
 
     render json: { error: 'Conversation not found' }, status: :not_found if @conversation.nil?
+  end
+
+  def permitted_params
+    params.permit(:conversation_id, :account_id, labels: [])
   end
 end

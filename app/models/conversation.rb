@@ -179,19 +179,6 @@ class Conversation < ApplicationRecord
     true
   end
 
-  # Helper methods for polymorphic assignee
-  def assignee_user
-    assignee if assignee_type == 'User'
-  end
-
-  def assigned_to_assistant?
-    assignee_type == 'Assistant'
-  end
-
-  def assigned_to_user?
-    assignee_type == 'User'
-  end
-
   def tweet?
     inbox.inbox_type == 'Twitter' && additional_attributes['type'] == 'tweet'
   end

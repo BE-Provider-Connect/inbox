@@ -51,15 +51,11 @@ export function useBulkActions() {
   async function onAssignAgent(agent, conversationId = null) {
     try {
       const agentId = agent.id;
-      // Assistant IDs are prefixed strings like "assistant_1"
-      const isAssistant =
-        String(agentId).startsWith('assistant_') || agent?.type === 'assistant';
+      const assigneeType = agent?.type === 'assistant' ? 'Assistant' : 'User';
       const fields = {
         assignee_id: agentId,
+        assignee_type: assigneeType,
       };
-      if (isAssistant) {
-        fields.assignee_type = 'Assistant';
-      }
 
       await store.dispatch('bulkActions/process', {
         type: 'Conversation',

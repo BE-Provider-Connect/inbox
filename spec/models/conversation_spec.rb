@@ -960,8 +960,6 @@ RSpec.describe Conversation do
       conversation.save!
       expect(conversation.assignee_type).to eq('User')
       expect(conversation.assignee_id).to eq(user.id)
-      expect(conversation.assigned_to_user?).to be(true)
-      expect(conversation.assigned_to_assistant?).to be(false)
     end
 
     it 'can be assigned to an assistant' do
@@ -969,18 +967,6 @@ RSpec.describe Conversation do
       conversation.save!
       expect(conversation.assignee_type).to eq('Assistant')
       expect(conversation.assignee_id).to eq(assistant.id)
-      expect(conversation.assigned_to_assistant?).to be(true)
-      expect(conversation.assigned_to_user?).to be(false)
-    end
-
-    it 'returns correct assignee_user for backward compatibility' do
-      conversation.assignee = user
-      conversation.save!
-      expect(conversation.assignee_user).to eq(user)
-
-      conversation.assignee = assistant
-      conversation.save!
-      expect(conversation.assignee_user).to be_nil
     end
   end
 end

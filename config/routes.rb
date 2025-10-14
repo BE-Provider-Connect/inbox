@@ -333,14 +333,16 @@ Rails.application.routes.draw do
       namespace :api do
         resources :articles, only: [:index, :show]
         resources :accounts, only: [] do
-          resources :conversations, only: [:show] do
-            scope module: :conversations do
-              resources :messages, only: [:index, :create]
-              resources :labels, only: [:create]
-              resource :assignments, only: [:create]
-            end
-            member do
-              post :toggle_status
+          scope module: :accounts do
+            resources :conversations, only: [:show] do
+              scope module: :conversations do
+                resources :messages, only: [:index, :create]
+                resources :labels, only: [:create]
+                resource :assignments, only: [:create]
+              end
+              member do
+                post :toggle_status
+              end
             end
           end
         end

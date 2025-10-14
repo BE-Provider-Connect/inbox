@@ -13,15 +13,14 @@ class Api::V1::Accounts::Conversations::AssignmentsController < Api::V1::Account
   private
 
   def set_assignee
-    assignee_id = params[:assignee_id]
+    type = params.require(:assignee_type).to_s.safe_constantize
+    id   = params.require(:assignee_id)
 
-    # Handle Assistant assignment (ID format: "assistant_1")
-    if assignee_id.to_s.start_with?('assistant_') || params[:assignee_type] == 'Assistant'
-      assistant_id = assignee_id.to_s.gsub('assistant_', '')
-      @agent = Assistant.find(assistant_id)
-    else
-      @agent = Current.account.users.find_by(id: assignee_id)
-    end
+    @agent = if type == User
+               Current.account.users.find_by(id: id)
+             else
+               type.find(id)
+             end
 
     @conversation.assignee = @agent
     @conversation.save!
@@ -29,13 +28,13 @@ class Api::V1::Accounts::Conversations::AssignmentsController < Api::V1::Account
   end
 
   def render_agent
-    if @agent.nil?
-      render json: nil
-    elsif @agent.is_a?(Assistant)
-      render partial: 'api/v1/models/assistant', formats: [:json], locals: { resource: @agent }
-    else
-      render partial: 'api/v1/models/agent', formats: [:json], locals: { resource: @agent }
-    end
+    return render json: nil if @agent.nil?
+
+    render(
+      partial: "api/v1/models/#{@agent.model_name.singular}",
+      formats: [:json],
+      locals: { resource: @agent }
+    )
   end
 
   def set_team

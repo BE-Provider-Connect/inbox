@@ -1,4 +1,4 @@
-class Api::V1::Api::Conversations::MessagesController < Api::BaseController
+class Api::V1::Api::Accounts::Conversations::MessagesController < Api::BaseController
   include CitadelApiAuthHelper
 
   skip_before_action :authenticate_user!, :validate_bot_access_token!
@@ -14,8 +14,7 @@ class Api::V1::Api::Conversations::MessagesController < Api::BaseController
   end
 
   def create
-    mb = Messages::MessageBuilder.new(nil, @conversation, message_params)
-    @message = mb.perform
+    @message = Messages::MessageBuilder.new(nil, @conversation, message_params).perform
   rescue StandardError => e
     render json: { error: e.message }, status: :unprocessable_entity
   end

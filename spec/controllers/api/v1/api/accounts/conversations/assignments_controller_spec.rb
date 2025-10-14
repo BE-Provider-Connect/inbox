@@ -66,7 +66,7 @@ RSpec.describe 'API Conversations Assignments API', type: :request do
         expect(conversation.reload.assignee_id).to eq(another_user.id)
       end
 
-      it 'filters by account_id when provided' do
+      it 'returns 404 for invalid account_id' do
         post "/api/v1/api/accounts/99999/conversations/#{conversation.display_id}/assignments",
              params: { assignee_id: user.id },
              headers: { 'citadel_api_key' => valid_api_key },
@@ -82,6 +82,19 @@ RSpec.describe 'API Conversations Assignments API', type: :request do
              as: :json
 
         expect(response).to have_http_status(:not_found)
+      end
+
+      it 'does not assign user from different account' do
+        other_account = create(:account)
+        other_user = create(:user, account: other_account)
+
+        post "/api/v1/api/accounts/#{account.id}/conversations/#{conversation.display_id}/assignments",
+             params: { assignee_id: other_user.id },
+             headers: { 'citadel_api_key' => valid_api_key },
+             as: :json
+
+        expect(response).to have_http_status(:success)
+        expect(conversation.reload.assignee_id).to be_nil
       end
     end
 
