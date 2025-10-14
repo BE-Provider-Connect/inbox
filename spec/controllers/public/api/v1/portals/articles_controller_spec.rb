@@ -111,10 +111,10 @@ RSpec.describe 'Public Articles API', type: :request do
       expect(article.reload.views).to eq 0 # View count should not increment on show
     end
 
-    it 'does not increment the view count if the article is not published' do
+    it 'returns 404 for draft articles' do
       draft_article = create(:article, category: category, status: :draft, portal: portal, account_id: account.id, author_id: agent.id, views: 0)
       get "/hc/#{portal.slug}/articles/#{draft_article.slug}"
-      expect(response).to have_http_status(:success)
+      expect(response).to have_http_status(:not_found)
       expect(draft_article.reload.views).to eq 0
     end
 

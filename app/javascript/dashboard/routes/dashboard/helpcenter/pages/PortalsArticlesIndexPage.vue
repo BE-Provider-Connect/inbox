@@ -105,16 +105,15 @@ const fetchPortalAndItsCategories = async locale => {
     portalSlug: selectedPortalSlug.value,
     locale: locale || selectedLocaleInPortal.value,
   };
-  store.dispatch('portals/show', selectedPortalParam);
-  store.dispatch('categories/index', selectedPortalParam);
-  store.dispatch('agents/get');
-  // Fetch community groups and communities for AI filter
-  await fetchCommunityData();
+  await Promise.all([
+    store.dispatch('portals/show', selectedPortalParam),
+    store.dispatch('categories/index', selectedPortalParam),
+    store.dispatch('agents/get'),
+    fetchCommunityData(),
+  ]);
 };
 
 const handleAiFilterChange = filter => {
-  aiFilter.value = filter;
-
   // Update URL query params to persist filter
   const query = { ...route.query };
 
@@ -132,31 +131,18 @@ const handleAiFilterChange = filter => {
   if (filter.communityIds?.length)
     query.community_ids = filter.communityIds.join(',');
 
+  // Pushing query will trigger route watcher which handles the rest
   router.push({ query });
-
-  // Reset page and fetch with new filters
-  pageNumber.value = 1;
-  fetchArticles();
 };
 
 onMounted(() => {
-  // Initialize AI filter from URL params
-  const query = route.query;
-  aiFilter.value = {
-    aiEnabled: query.ai_enabled,
-    aiScope: query.ai_scope,
-    communityGroupIds:
-      query.community_group_ids?.split(',').filter(Boolean).map(Number) || [],
-    communityIds:
-      query.community_ids?.split(',').filter(Boolean).map(Number) || [],
-  };
-
-  fetchArticles();
+  // Fetch portal and categories once on mount
+  // Route watcher with immediate: true handles article fetching
   fetchPortalAndItsCategories();
 });
 
 watch(
-  () => ({ ...route.params, ...route.query }),
+  () => route.fullPath,
   () => {
     // Update AI filter from URL changes (e.g., browser back/forward)
     const query = route.query;
@@ -172,7 +158,7 @@ watch(
     pageNumber.value = 1;
     fetchArticles();
   },
-  { deep: true, immediate: true }
+  { immediate: true }
 );
 </script>
 

@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, watch, onMounted } from 'vue';
+import { reactive, watch, onMounted, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import Button from 'dashboard/components-next/button/Button.vue';
@@ -19,6 +19,10 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  isSaving: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const emit = defineEmits(['saveArticle', 'close']);
@@ -31,7 +35,6 @@ const state = reactive({
   enabled: false,
   scope: undefined,
   selectedEntity: undefined,
-  isSaving: false,
   isUpdatingFromProp: false,
 });
 
@@ -41,7 +44,7 @@ const scopeOptions = [
   { id: 'community', name: 'Community' },
 ];
 
-const updateState = () => {
+const updateState = async () => {
   state.isUpdatingFromProp = true;
 
   state.enabled = props.article.aiAgentEnabled || false;
@@ -66,10 +69,9 @@ const updateState = () => {
     state.selectedEntity = undefined;
   }
 
-  // Use nextTick to reset the flag after all reactive updates complete
-  setTimeout(() => {
-    state.isUpdatingFromProp = false;
-  }, 0);
+  // Wait for all reactive updates to complete
+  await nextTick();
+  state.isUpdatingFromProp = false;
 };
 
 const saveImmediately = () => {
@@ -103,62 +105,42 @@ const saveImmediately = () => {
     payload.community_ids = [];
   }
 
-  state.isSaving = true;
   emit('saveArticle', payload);
-
-  setTimeout(() => {
-    state.isSaving = false;
-  }, 1000);
 };
 
+// Single consolidated watcher for save logic
 watch(
-  () => state.enabled,
-  () => {
-    // Only save if not updating from prop (prevent loop)
-    if (!state.isUpdatingFromProp) {
-      // Only save immediately when disabling
-      // When enabling, wait for scope selection
-      if (!state.enabled) {
-        saveImmediately();
-      }
-    }
-  }
-);
+  () => ({
+    enabled: state.enabled,
+    scopeId: state.scope?.id,
+    entityId: state.selectedEntity?.id,
+  }),
+  (newState, oldState) => {
+    if (state.isUpdatingFromProp) return;
 
-watch(
-  () => state.scope,
-  (newScope, oldScope) => {
-    if (
-      !state.isUpdatingFromProp &&
-      newScope &&
-      newScope?.id !== oldScope?.id
-    ) {
-      // Scope changed by user - clear entity selection
+    // Clear entity when scope changes
+    if (newState.scopeId !== oldState?.scopeId && newState.scopeId) {
       state.selectedEntity = undefined;
-
-      if (newScope.id === 'organization') {
-        // Organization scope - save immediately
-        saveImmediately();
-      }
-      // For community/community_group scopes, don't save until entity is selected
     }
-  }
-);
 
-watch(
-  () => state.selectedEntity,
-  newEntity => {
-    if (
-      !state.isUpdatingFromProp &&
-      newEntity &&
-      state.enabled &&
-      state.scope &&
-      (state.scope.id === 'community' || state.scope.id === 'community_group')
-    ) {
-      // Entity selected for community/community_group scope - save immediately
+    // Determine if we should save
+    const shouldSave =
+      // Disabling AI agent
+      (!newState.enabled && oldState?.enabled) ||
+      // Enabling with organization scope
+      (newState.enabled &&
+        newState.scopeId === 'organization' &&
+        newState.scopeId !== oldState?.scopeId) ||
+      // Entity selected for community/group scope
+      (newState.enabled &&
+        newState.entityId &&
+        ['community', 'community_group'].includes(newState.scopeId));
+
+    if (shouldSave) {
       saveImmediately();
     }
-  }
+  },
+  { deep: true }
 );
 
 // Watch for article changes to update state
@@ -199,7 +181,7 @@ onMounted(() => {
         <label class="text-sm font-medium text-n-slate-12">
           {{ t(`${i18nBase}.ENABLE_LABEL`) }}
         </label>
-        <ToggleSwitch v-model="state.enabled" :disabled="state.isSaving" />
+        <ToggleSwitch v-model="state.enabled" :disabled="isSaving" />
       </div>
 
       <!-- Scope Selection -->
@@ -209,7 +191,7 @@ onMounted(() => {
           v-model:selected-entity="state.selectedEntity"
           :community-groups="communityGroups"
           :communities="communities"
-          :disabled="state.isSaving"
+          :disabled="isSaving"
         />
       </div>
     </div>

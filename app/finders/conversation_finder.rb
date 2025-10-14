@@ -179,9 +179,10 @@ class ConversationFinder
   end
 
   def conversations_base_query
+    # Cannot use includes with polymorphic associations, use preload instead
     @conversations.includes(
-      :taggings, :inbox, { assignee: { avatar_attachment: [:blob] } }, { contact: { avatar_attachment: [:blob] } }, :team, :contact_inbox
-    )
+      :taggings, :inbox, { contact: { avatar_attachment: [:blob] } }, :team, :contact_inbox
+    ).preload(assignee: { avatar_attachment: [:blob] })
   end
 
   def conversations

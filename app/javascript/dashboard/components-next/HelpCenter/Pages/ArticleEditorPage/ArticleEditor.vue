@@ -125,6 +125,7 @@ const previewArticle = () => {
         />
         <ArticleEditorControls
           :article="article"
+          :is-updating="isUpdating"
           @save-article="saveAndSync"
           @set-author="setAuthorId"
           @set-category="setCategoryId"

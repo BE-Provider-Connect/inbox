@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 import { OnClickOutside } from '@vueuse/components';
 import { useMapGetter } from 'dashboard/composables/store';
+import { useAiAgentLabel } from 'dashboard/composables/useAiAgentLabel';
 
 import Button from 'dashboard/components-next/button/Button.vue';
 import Avatar from 'dashboard/components-next/avatar/Avatar.vue';
@@ -16,6 +17,10 @@ const props = defineProps({
   article: {
     type: Object,
     default: () => ({}),
+  },
+  isUpdating: {
+    type: Boolean,
+    default: false,
   },
 });
 
@@ -172,24 +177,14 @@ const togglePrivacy = () => {
   emit('saveArticle', { private: newPrivateValue });
 };
 
-const aiAgentDisplayText = computed(() => {
-  if (!props.article?.aiAgentEnabled) return 'AI Agent: Off';
-  if (props.article.aiAgentScope === 'organization')
-    return 'AI Agent: Organization';
-  if (
-    props.article.aiAgentScope === 'community_group' &&
-    props.article.communityGroups?.[0]
-  ) {
-    return `AI Agent: On ${props.article.communityGroups[0].name}`;
-  }
-  if (
-    props.article.aiAgentScope === 'community' &&
-    props.article.communities?.[0]
-  ) {
-    return `AI Agent: On ${props.article.communities[0].name}`;
-  }
-  return 'AI Agent';
-});
+const aiAgentConfig = computed(() => ({
+  enabled: props.article?.aiAgentEnabled,
+  scope: props.article?.aiAgentScope,
+  communityGroups: props.article?.communityGroups || [],
+  communities: props.article?.communities || [],
+}));
+
+const { label: aiAgentDisplayText } = useAiAgentLabel(aiAgentConfig);
 
 const fetchCommunityData = async () => {
   try {
@@ -323,6 +318,7 @@ onMounted(() => {
           :article="article"
           :community-groups="communityGroups"
           :communities="communities"
+          :is-saving="isUpdating"
           class="right-0 z-[100] mt-2 xl:left-0 top-full"
           @save-article="updateAiAgentConfig"
           @close="openAiAgentConfig = false"

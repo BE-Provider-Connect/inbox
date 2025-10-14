@@ -31,13 +31,13 @@ const state = reactive({
   selectedCommunity: undefined,
 });
 
-const enabledOptions = [
+const enabledOptions = computed(() => [
   { id: 'all', name: t('HELP_CENTER.ARTICLES_PAGE.AI_FILTER.ALL') },
   { id: 'true', name: t('HELP_CENTER.ARTICLES_PAGE.AI_FILTER.ENABLED') },
   { id: 'false', name: t('HELP_CENTER.ARTICLES_PAGE.AI_FILTER.DISABLED') },
-];
+]);
 
-const scopeOptions = [
+const scopeOptions = computed(() => [
   { id: 'all', name: t('HELP_CENTER.ARTICLES_PAGE.AI_FILTER.ALL_SCOPES') },
   {
     id: 'organization',
@@ -48,7 +48,7 @@ const scopeOptions = [
     name: t('HELP_CENTER.ARTICLES_PAGE.AI_FILTER.COMMUNITY_GROUP'),
   },
   { id: 'community', name: t('HELP_CENTER.ARTICLES_PAGE.AI_FILTER.COMMUNITY') },
-];
+]);
 
 const isScopeEnabled = computed(() => {
   return state.enabled?.id === 'true';
@@ -89,14 +89,8 @@ const applyFilter = () => {
 };
 
 const clearFilter = () => {
-  state.enabled = {
-    id: 'all',
-    name: t('HELP_CENTER.ARTICLES_PAGE.AI_FILTER.ALL'),
-  };
-  state.scope = {
-    id: 'all',
-    name: t('HELP_CENTER.ARTICLES_PAGE.AI_FILTER.ALL_SCOPES'),
-  };
+  state.enabled = enabledOptions.value.find(opt => opt.id === 'all');
+  state.scope = scopeOptions.value.find(opt => opt.id === 'all');
   state.selectedGroup = undefined;
   state.selectedCommunity = undefined;
   emit('clear');
@@ -106,13 +100,13 @@ const clearFilter = () => {
 const initializeState = () => {
   // Initialize enabled filter
   const enabledId = props.currentFilter.aiEnabled || 'all';
-  state.enabled = enabledOptions.find(opt => opt.id === enabledId);
+  state.enabled = enabledOptions.value.find(opt => opt.id === enabledId);
 
   // Only initialize scope and entities if AI is enabled
   if (enabledId === 'true') {
     // Initialize scope filter
     const scopeId = props.currentFilter.aiScope || 'all';
-    state.scope = scopeOptions.find(opt => opt.id === scopeId);
+    state.scope = scopeOptions.value.find(opt => opt.id === scopeId);
 
     // Initialize community group if present
     if (props.currentFilter.communityGroupIds?.length > 0) {
@@ -135,7 +129,7 @@ const initializeState = () => {
     }
   } else {
     // Clear scope and entities when AI is not enabled
-    state.scope = scopeOptions.find(opt => opt.id === 'all');
+    state.scope = scopeOptions.value.find(opt => opt.id === 'all');
     state.selectedGroup = undefined;
     state.selectedCommunity = undefined;
   }
@@ -146,10 +140,7 @@ watch(
   () => state.enabled,
   newEnabled => {
     if (newEnabled?.id === 'false' || newEnabled?.id === 'all') {
-      state.scope = {
-        id: 'all',
-        name: t('HELP_CENTER.ARTICLES_PAGE.AI_FILTER.ALL_SCOPES'),
-      };
+      state.scope = scopeOptions.value.find(opt => opt.id === 'all');
       state.selectedGroup = undefined;
       state.selectedCommunity = undefined;
     }
@@ -169,13 +160,17 @@ watch(
   }
 );
 
-// Watch for currentFilter changes to update state
+// Watch for specific currentFilter fields to update state
 watch(
-  () => props.currentFilter,
+  () => [
+    props.currentFilter.aiEnabled,
+    props.currentFilter.aiScope,
+    props.currentFilter.communityGroupIds,
+    props.currentFilter.communityIds,
+  ],
   () => {
     initializeState();
-  },
-  { deep: true }
+  }
 );
 
 // Initialize on mount
