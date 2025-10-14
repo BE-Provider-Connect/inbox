@@ -39,8 +39,10 @@ class BulkActionsJob < ApplicationJob
 
     conversation.assignee = if type == User
                               @account.users.find_by(id: id)
-                            else
-                              type.find(id)
+                            elsif type == Assistant
+                              # Strip 'assistant_' prefix since frontend sends it with prefix
+                              actual_id = id.to_s.sub(/^assistant_/, '')
+                              type.find(actual_id)
                             end
   end
 

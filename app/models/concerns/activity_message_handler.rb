@@ -114,6 +114,8 @@ module ActivityMessageHandler
 
   def create_assignee_change_activity(user_name)
     user_name = activity_message_owner(user_name)
+    # For Assistant assignments, use the assistant's name
+    user_name ||= assignee.name if assignee_type == 'Assistant'
 
     return unless user_name
 

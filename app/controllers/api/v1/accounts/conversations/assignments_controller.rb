@@ -18,8 +18,10 @@ class Api::V1::Accounts::Conversations::AssignmentsController < Api::V1::Account
 
     @agent = if type == User
                Current.account.users.find_by(id: id)
-             else
-               type.find(id)
+             elsif type == Assistant
+               # Strip 'assistant_' prefix since frontend sends it with prefix
+               actual_id = id.to_s.sub(/^assistant_/, '')
+               type.find(actual_id)
              end
 
     @conversation.assignee = @agent
