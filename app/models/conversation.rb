@@ -96,7 +96,7 @@ class Conversation < ApplicationRecord
 
   belongs_to :account
   belongs_to :inbox
-  belongs_to :assignee, class_name: 'User', optional: true, inverse_of: :assigned_conversations
+  belongs_to :assignee, polymorphic: true, optional: true
   belongs_to :contact
   belongs_to :contact_inbox
   belongs_to :team, optional: true
@@ -174,7 +174,7 @@ class Conversation < ApplicationRecord
   def notifiable_assignee_change?
     return false unless saved_change_to_assignee_id?
     return false if assignee_id.blank?
-    return false if self_assign?(assignee_id)
+    return false if assignee_type == 'User' && self_assign?(assignee_id)
 
     true
   end

@@ -7,9 +7,13 @@ json.meta do
     json.partial! 'api/v1/models/contact', formats: [:json], resource: conversation.contact
   end
   json.channel conversation.inbox.try(:channel_type)
-  if conversation.assignee&.account
+  if conversation.assignee.present?
     json.assignee do
-      json.partial! 'api/v1/models/agent', formats: [:json], resource: conversation.assignee
+      if conversation.assignee.is_a?(Assistant)
+        json.partial! 'api/v1/models/assistant', formats: [:json], resource: conversation.assignee
+      else
+        json.partial! 'api/v1/models/agent', formats: [:json], resource: conversation.assignee
+      end
     end
   end
   if conversation.team.present?

@@ -355,7 +355,10 @@ describe('#actions', () => {
       axios.post.mockResolvedValue({
         data: { id: 1, name: 'User' },
       });
-      await actions.assignAgent({ commit }, { conversationId: 1, agentId: 1 });
+      await actions.assignAgent(
+        { commit },
+        { conversationId: 1, agentId: 1, assigneeType: 'User' }
+      );
       expect(commit).toHaveBeenCalledTimes(0);
       expect(commit.mock.calls).toEqual([]);
     });

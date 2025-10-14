@@ -43,7 +43,7 @@ RSpec.describe 'Conversation Assignment API', type: :request do
       end
 
       it 'assigns a user to the conversation' do
-        params = { assignee_id: agent.id }
+        params = { assignee_id: agent.id, assignee_type: 'User' }
 
         post api_v1_account_conversation_assignments_url(account_id: account.id, conversation_id: conversation.display_id),
              params: params,
@@ -70,6 +70,20 @@ RSpec.describe 'Conversation Assignment API', type: :request do
         # assignee will be from team
         expect(conversation.reload.assignee).to eq(team_member)
       end
+
+      it 'assigns an assistant to the conversation' do
+        assistant = Assistant.instance
+        params = { assignee_id: assistant.id, assignee_type: 'Assistant' }
+
+        post api_v1_account_conversation_assignments_url(account_id: account.id, conversation_id: conversation.display_id),
+             params: params,
+             headers: agent.create_new_auth_token,
+             as: :json
+
+        expect(response).to have_http_status(:success)
+        expect(conversation.reload.assignee).to eq(assistant)
+        expect(conversation.reload.assignee_type).to eq('Assistant')
+      end
     end
 
     context 'when it is an authenticated bot with access to the inbox' do
@@ -90,7 +104,8 @@ RSpec.describe 'Conversation Assignment API', type: :request do
         post "/api/v1/accounts/#{account.id}/conversations/#{conversation.display_id}/assignments",
              headers: { api_access_token: agent_bot.access_token.token },
              params: {
-               assignee_id: agent.id
+               assignee_id: agent.id,
+               assignee_type: 'User'
              },
              as: :json
 
@@ -125,7 +140,7 @@ RSpec.describe 'Conversation Assignment API', type: :request do
       end
 
       it 'unassigns the assignee from the conversation' do
-        params = { assignee_id: 0 }
+        params = { assignee_id: 0, assignee_type: 'User' }
         post api_v1_account_conversation_assignments_url(account_id: account.id, conversation_id: conversation.display_id),
              params: params,
              headers: agent.create_new_auth_token,

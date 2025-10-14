@@ -21,13 +21,25 @@ class Webhooks::Trigger
   private
 
   def perform_request
+    headers = { content_type: :json, accept: :json }
+
+    # Add API key header only for Assistant webhooks going to Citadel
+    headers['X-Api-Key'] = ENV.fetch('CITADEL_API_KEY', nil) if assistant_webhook_to_citadel?
+
     RestClient::Request.execute(
       method: :post,
       url: @url,
       payload: @payload.to_json,
-      headers: { content_type: :json, accept: :json },
+      headers: headers,
       timeout: 5
     )
+  end
+
+  def assistant_webhook_to_citadel?
+    citadel_webhook_url = ENV.fetch('CITADEL_API_WEBHOOK_URL', nil)
+    return false if citadel_webhook_url.blank?
+
+    @webhook_type == :assistant_webhook && @url.start_with?(citadel_webhook_url)
   end
 
   def handle_error(error)

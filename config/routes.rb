@@ -329,9 +329,23 @@ Rails.application.routes.draw do
         resources :webhooks, only: [:create]
       end
 
-      # Service-to-service sync endpoints for Citadel
-      namespace :sync do
+      # API endpoints for external service integration (Citadel API)
+      namespace :citadel do
         resources :articles, only: [:index, :show]
+        resources :accounts, only: [] do
+          scope module: :accounts do
+            resources :conversations, only: [:show] do
+              scope module: :conversations do
+                resources :messages, only: [:index, :create]
+                resources :labels, only: [:create]
+                resource :assignments, only: [:create]
+              end
+              member do
+                post :toggle_status
+              end
+            end
+          end
+        end
       end
 
       # Frontend API endpoint to trigger SAML authentication flow

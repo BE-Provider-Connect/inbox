@@ -38,6 +38,8 @@ class NotificationListener < BaseListener
     return if assignee.blank?
     return if event.data[:notifiable_assignee_change].blank?
     return if conversation.pending?
+    # Don't notify assistants - they don't have notification preferences
+    return if assignee.is_a?(Assistant)
 
     NotificationBuilder.new(
       notification_type: 'conversation_assignment',

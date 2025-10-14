@@ -133,7 +133,8 @@ class Account < ApplicationRecord
   def webhook_data
     {
       id: id,
-      name: name
+      name: name,
+      external_id: external_id
     }
   end
 

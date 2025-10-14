@@ -202,11 +202,15 @@ const actions = {
     }
   },
 
-  assignAgent: async ({ dispatch }, { conversationId, agentId }) => {
+  assignAgent: async (
+    { dispatch },
+    { conversationId, agentId, assigneeType }
+  ) => {
     try {
       const response = await ConversationApi.assignAgent({
         conversationId,
         agentId,
+        assigneeType,
       });
       dispatch('setCurrentChatAssignee', response.data);
     } catch (error) {
