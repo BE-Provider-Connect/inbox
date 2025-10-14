@@ -1,4 +1,4 @@
-class Api::V1::Api::Accounts::Conversations::MessagesController < Api::BaseController
+class Api::V1::Citadel::Accounts::Conversations::MessagesController < Api::BaseController
   include CitadelApiAuthHelper
 
   skip_before_action :authenticate_user!, :validate_bot_access_token!

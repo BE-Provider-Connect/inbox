@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe 'API Conversations Messages API', type: :request do
+RSpec.describe 'Citadel API Conversations Messages API', type: :request do
   let(:account) { create(:account) }
   let(:valid_api_key) { 'test-api-key-123' }
   let(:inbox) { create(:inbox, account: account) }
@@ -41,7 +41,7 @@ RSpec.describe 'API Conversations Messages API', type: :request do
   describe 'GET #index' do
     context 'with valid API key' do
       it 'returns all messages for conversation' do
-        get "/api/v1/api/accounts/#{account.id}/conversations/#{conversation.display_id}/messages",
+        get "/api/v1/citadel/accounts/#{account.id}/conversations/#{conversation.display_id}/messages",
             headers: { 'citadel_api_key' => valid_api_key },
             as: :json
 
@@ -55,7 +55,7 @@ RSpec.describe 'API Conversations Messages API', type: :request do
       end
 
       it 'includes message details' do
-        get "/api/v1/api/accounts/#{account.id}/conversations/#{conversation.display_id}/messages",
+        get "/api/v1/citadel/accounts/#{account.id}/conversations/#{conversation.display_id}/messages",
             headers: { 'citadel_api_key' => valid_api_key },
             as: :json
 
@@ -70,7 +70,7 @@ RSpec.describe 'API Conversations Messages API', type: :request do
       end
 
       it 'orders messages by created_at' do
-        get "/api/v1/api/accounts/#{account.id}/conversations/#{conversation.display_id}/messages",
+        get "/api/v1/citadel/accounts/#{account.id}/conversations/#{conversation.display_id}/messages",
             headers: { 'citadel_api_key' => valid_api_key },
             as: :json
 
@@ -81,7 +81,7 @@ RSpec.describe 'API Conversations Messages API', type: :request do
       end
 
       it 'returns 404 for invalid account_id' do
-        get "/api/v1/api/accounts/99999/conversations/#{conversation.display_id}/messages",
+        get "/api/v1/citadel/accounts/99999/conversations/#{conversation.display_id}/messages",
             headers: { 'citadel_api_key' => valid_api_key },
             as: :json
 
@@ -89,7 +89,7 @@ RSpec.describe 'API Conversations Messages API', type: :request do
       end
 
       it 'returns 404 for non-existent conversation' do
-        get "/api/v1/api/accounts/#{account.id}/conversations/999999/messages",
+        get "/api/v1/citadel/accounts/#{account.id}/conversations/999999/messages",
             headers: { 'citadel_api_key' => valid_api_key },
             as: :json
 
@@ -99,7 +99,7 @@ RSpec.describe 'API Conversations Messages API', type: :request do
 
     context 'without valid API key' do
       it 'returns unauthorized' do
-        get "/api/v1/api/accounts/#{account.id}/conversations/#{conversation.display_id}/messages",
+        get "/api/v1/citadel/accounts/#{account.id}/conversations/#{conversation.display_id}/messages",
             as: :json
 
         expect(response).to have_http_status(:unauthorized)
@@ -111,7 +111,7 @@ RSpec.describe 'API Conversations Messages API', type: :request do
     context 'with valid API key' do
       it 'creates a new message' do
         expect do
-          post "/api/v1/api/accounts/#{account.id}/conversations/#{conversation.display_id}/messages",
+          post "/api/v1/citadel/accounts/#{account.id}/conversations/#{conversation.display_id}/messages",
                params: {
                  content: 'New message',
                  message_type: 'outgoing'
@@ -128,7 +128,7 @@ RSpec.describe 'API Conversations Messages API', type: :request do
       end
 
       it 'creates private message when private param is true' do
-        post "/api/v1/api/accounts/#{account.id}/conversations/#{conversation.display_id}/messages",
+        post "/api/v1/citadel/accounts/#{account.id}/conversations/#{conversation.display_id}/messages",
              params: {
                content: 'Private note',
                message_type: 'outgoing',
@@ -145,7 +145,7 @@ RSpec.describe 'API Conversations Messages API', type: :request do
       end
 
       it 'returns 404 for invalid account_id' do
-        post "/api/v1/api/accounts/99999/conversations/#{conversation.display_id}/messages",
+        post "/api/v1/citadel/accounts/99999/conversations/#{conversation.display_id}/messages",
              params: {
                content: 'Test message',
                message_type: 'outgoing'
@@ -157,7 +157,7 @@ RSpec.describe 'API Conversations Messages API', type: :request do
       end
 
       it 'returns 404 for non-existent conversation' do
-        post "/api/v1/api/accounts/#{account.id}/conversations/999999/messages",
+        post "/api/v1/citadel/accounts/#{account.id}/conversations/999999/messages",
              params: {
                content: 'Test message',
                message_type: 'outgoing'
@@ -171,7 +171,7 @@ RSpec.describe 'API Conversations Messages API', type: :request do
 
     context 'without valid API key' do
       it 'returns unauthorized' do
-        post "/api/v1/api/accounts/#{account.id}/conversations/#{conversation.display_id}/messages",
+        post "/api/v1/citadel/accounts/#{account.id}/conversations/#{conversation.display_id}/messages",
              params: {
                content: 'New message',
                message_type: 'outgoing'

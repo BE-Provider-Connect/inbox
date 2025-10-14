@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe 'API Conversations API', type: :request do
+RSpec.describe 'Citadel API Conversations API', type: :request do
   let(:account) { create(:account) }
   let(:valid_api_key) { 'test-api-key-123' }
   let(:inbox) { create(:inbox, account: account) }
@@ -25,7 +25,7 @@ RSpec.describe 'API Conversations API', type: :request do
   describe 'GET #show' do
     context 'with valid API key' do
       it 'returns conversation details' do
-        get "/api/v1/api/accounts/#{account.id}/conversations/#{conversation.display_id}",
+        get "/api/v1/citadel/accounts/#{account.id}/conversations/#{conversation.display_id}",
             headers: { 'citadel_api_key' => valid_api_key },
             as: :json
 
@@ -38,7 +38,7 @@ RSpec.describe 'API Conversations API', type: :request do
       end
 
       it 'includes conversation meta with sender info' do
-        get "/api/v1/api/accounts/#{account.id}/conversations/#{conversation.display_id}",
+        get "/api/v1/citadel/accounts/#{account.id}/conversations/#{conversation.display_id}",
             headers: { 'citadel_api_key' => valid_api_key },
             as: :json
 
@@ -51,7 +51,7 @@ RSpec.describe 'API Conversations API', type: :request do
       end
 
       it 'includes assignee info when present' do
-        get "/api/v1/api/accounts/#{account.id}/conversations/#{conversation.display_id}",
+        get "/api/v1/citadel/accounts/#{account.id}/conversations/#{conversation.display_id}",
             headers: { 'citadel_api_key' => valid_api_key },
             as: :json
 
@@ -63,7 +63,7 @@ RSpec.describe 'API Conversations API', type: :request do
       end
 
       it 'returns 404 for invalid account_id' do
-        get "/api/v1/api/accounts/99999/conversations/#{conversation.display_id}",
+        get "/api/v1/citadel/accounts/99999/conversations/#{conversation.display_id}",
             headers: { 'citadel_api_key' => valid_api_key },
             as: :json
 
@@ -71,7 +71,7 @@ RSpec.describe 'API Conversations API', type: :request do
       end
 
       it 'returns 404 for non-existent conversation' do
-        get "/api/v1/api/accounts/#{account.id}/conversations/999999",
+        get "/api/v1/citadel/accounts/#{account.id}/conversations/999999",
             headers: { 'citadel_api_key' => valid_api_key },
             as: :json
 
@@ -81,7 +81,7 @@ RSpec.describe 'API Conversations API', type: :request do
 
     context 'without valid API key' do
       it 'returns unauthorized' do
-        get "/api/v1/api/accounts/#{account.id}/conversations/#{conversation.display_id}",
+        get "/api/v1/citadel/accounts/#{account.id}/conversations/#{conversation.display_id}",
             as: :json
 
         expect(response).to have_http_status(:unauthorized)
@@ -92,7 +92,7 @@ RSpec.describe 'API Conversations API', type: :request do
   describe 'POST #toggle_status' do
     context 'with valid API key' do
       it 'updates conversation status' do
-        post "/api/v1/api/accounts/#{account.id}/conversations/#{conversation.display_id}/toggle_status",
+        post "/api/v1/citadel/accounts/#{account.id}/conversations/#{conversation.display_id}/toggle_status",
              params: { status: 'resolved' },
              headers: { 'citadel_api_key' => valid_api_key },
              as: :json
@@ -105,7 +105,7 @@ RSpec.describe 'API Conversations API', type: :request do
       end
 
       it 'returns 404 for invalid account_id' do
-        post "/api/v1/api/accounts/99999/conversations/#{conversation.display_id}/toggle_status",
+        post "/api/v1/citadel/accounts/99999/conversations/#{conversation.display_id}/toggle_status",
              params: { status: 'resolved' },
              headers: { 'citadel_api_key' => valid_api_key },
              as: :json
@@ -116,7 +116,7 @@ RSpec.describe 'API Conversations API', type: :request do
 
     context 'without valid API key' do
       it 'returns unauthorized' do
-        post "/api/v1/api/accounts/#{account.id}/conversations/#{conversation.display_id}/toggle_status",
+        post "/api/v1/citadel/accounts/#{account.id}/conversations/#{conversation.display_id}/toggle_status",
              params: { status: 'resolved' },
              as: :json
 

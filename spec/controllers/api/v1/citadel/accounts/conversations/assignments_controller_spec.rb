@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe 'API Conversations Assignments API', type: :request do
+RSpec.describe 'Citadel API Conversations Assignments API', type: :request do
   let(:account) { create(:account) }
   let(:valid_api_key) { 'test-api-key-123' }
   let(:inbox) { create(:inbox, account: account) }
@@ -23,7 +23,7 @@ RSpec.describe 'API Conversations Assignments API', type: :request do
   describe 'POST #create' do
     context 'with valid API key' do
       it 'assigns conversation to user' do
-        post "/api/v1/api/accounts/#{account.id}/conversations/#{conversation.display_id}/assignments",
+        post "/api/v1/citadel/accounts/#{account.id}/conversations/#{conversation.display_id}/assignments",
              params: { assignee_id: user.id },
              headers: { 'citadel_api_key' => valid_api_key },
              as: :json
@@ -38,7 +38,7 @@ RSpec.describe 'API Conversations Assignments API', type: :request do
       it 'unassigns conversation when assignee_id is null' do
         conversation.update!(assignee: user)
 
-        post "/api/v1/api/accounts/#{account.id}/conversations/#{conversation.display_id}/assignments",
+        post "/api/v1/citadel/accounts/#{account.id}/conversations/#{conversation.display_id}/assignments",
              params: { assignee_id: nil },
              headers: { 'citadel_api_key' => valid_api_key },
              as: :json
@@ -54,7 +54,7 @@ RSpec.describe 'API Conversations Assignments API', type: :request do
         another_user = create(:user, account: account)
         conversation.update!(assignee: user)
 
-        post "/api/v1/api/accounts/#{account.id}/conversations/#{conversation.display_id}/assignments",
+        post "/api/v1/citadel/accounts/#{account.id}/conversations/#{conversation.display_id}/assignments",
              params: { assignee_id: another_user.id },
              headers: { 'citadel_api_key' => valid_api_key },
              as: :json
@@ -67,7 +67,7 @@ RSpec.describe 'API Conversations Assignments API', type: :request do
       end
 
       it 'returns 404 for invalid account_id' do
-        post "/api/v1/api/accounts/99999/conversations/#{conversation.display_id}/assignments",
+        post "/api/v1/citadel/accounts/99999/conversations/#{conversation.display_id}/assignments",
              params: { assignee_id: user.id },
              headers: { 'citadel_api_key' => valid_api_key },
              as: :json
@@ -76,7 +76,7 @@ RSpec.describe 'API Conversations Assignments API', type: :request do
       end
 
       it 'returns 404 for non-existent conversation' do
-        post "/api/v1/api/accounts/#{account.id}/conversations/999999/assignments",
+        post "/api/v1/citadel/accounts/#{account.id}/conversations/999999/assignments",
              params: { assignee_id: user.id },
              headers: { 'citadel_api_key' => valid_api_key },
              as: :json
@@ -88,7 +88,7 @@ RSpec.describe 'API Conversations Assignments API', type: :request do
         other_account = create(:account)
         other_user = create(:user, account: other_account)
 
-        post "/api/v1/api/accounts/#{account.id}/conversations/#{conversation.display_id}/assignments",
+        post "/api/v1/citadel/accounts/#{account.id}/conversations/#{conversation.display_id}/assignments",
              params: { assignee_id: other_user.id },
              headers: { 'citadel_api_key' => valid_api_key },
              as: :json
@@ -100,7 +100,7 @@ RSpec.describe 'API Conversations Assignments API', type: :request do
 
     context 'without valid API key' do
       it 'returns unauthorized' do
-        post "/api/v1/api/accounts/#{account.id}/conversations/#{conversation.display_id}/assignments",
+        post "/api/v1/citadel/accounts/#{account.id}/conversations/#{conversation.display_id}/assignments",
              params: { assignee_id: user.id },
              as: :json
 

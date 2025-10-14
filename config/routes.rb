@@ -330,7 +330,7 @@ Rails.application.routes.draw do
       end
 
       # API endpoints for external service integration (Citadel API)
-      namespace :api do
+      namespace :citadel do
         resources :articles, only: [:index, :show]
         resources :accounts, only: [] do
           scope module: :accounts do

@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe 'API Conversations Labels API', type: :request do
+RSpec.describe 'Citadel API Conversations Labels API', type: :request do
   let(:account) { create(:account) }
   let(:valid_api_key) { 'test-api-key-123' }
   let(:inbox) { create(:inbox, account: account) }
@@ -22,7 +22,7 @@ RSpec.describe 'API Conversations Labels API', type: :request do
   describe 'POST #create' do
     context 'with valid API key' do
       it 'adds labels to conversation' do
-        post "/api/v1/api/accounts/#{account.id}/conversations/#{conversation.display_id}/labels",
+        post "/api/v1/citadel/accounts/#{account.id}/conversations/#{conversation.display_id}/labels",
              params: { labels: %w[bug urgent] },
              headers: { 'citadel_api_key' => valid_api_key },
              as: :json
@@ -37,7 +37,7 @@ RSpec.describe 'API Conversations Labels API', type: :request do
       it 'adds to existing labels' do
         conversation.add_labels(['old-label'])
 
-        post "/api/v1/api/accounts/#{account.id}/conversations/#{conversation.display_id}/labels",
+        post "/api/v1/citadel/accounts/#{account.id}/conversations/#{conversation.display_id}/labels",
              params: { labels: ['new-label'] },
              headers: { 'citadel_api_key' => valid_api_key },
              as: :json
@@ -52,7 +52,7 @@ RSpec.describe 'API Conversations Labels API', type: :request do
       it 'does not modify labels when array is empty' do
         conversation.add_labels(%w[label1 label2])
 
-        post "/api/v1/api/accounts/#{account.id}/conversations/#{conversation.display_id}/labels",
+        post "/api/v1/citadel/accounts/#{account.id}/conversations/#{conversation.display_id}/labels",
              params: { labels: [] },
              headers: { 'citadel_api_key' => valid_api_key },
              as: :json
@@ -65,7 +65,7 @@ RSpec.describe 'API Conversations Labels API', type: :request do
       end
 
       it 'returns 404 for invalid account_id' do
-        post "/api/v1/api/accounts/99999/conversations/#{conversation.display_id}/labels",
+        post "/api/v1/citadel/accounts/99999/conversations/#{conversation.display_id}/labels",
              params: { labels: ['test'] },
              headers: { 'citadel_api_key' => valid_api_key },
              as: :json
@@ -74,7 +74,7 @@ RSpec.describe 'API Conversations Labels API', type: :request do
       end
 
       it 'returns 404 for non-existent conversation' do
-        post "/api/v1/api/accounts/#{account.id}/conversations/999999/labels",
+        post "/api/v1/citadel/accounts/#{account.id}/conversations/999999/labels",
              params: { labels: ['test'] },
              headers: { 'citadel_api_key' => valid_api_key },
              as: :json
@@ -85,7 +85,7 @@ RSpec.describe 'API Conversations Labels API', type: :request do
 
     context 'without valid API key' do
       it 'returns unauthorized' do
-        post "/api/v1/api/accounts/#{account.id}/conversations/#{conversation.display_id}/labels",
+        post "/api/v1/citadel/accounts/#{account.id}/conversations/#{conversation.display_id}/labels",
              params: { labels: ['test'] },
              as: :json
 
