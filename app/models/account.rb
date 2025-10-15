@@ -49,7 +49,6 @@ class Account < ApplicationRecord
   }.freeze
 
   validates :domain, length: { maximum: 100 }
-  validates :external_id, uniqueness: true, allow_nil: true
   validates_with JsonSchemaValidator,
                  schema: SETTINGS_PARAMS_SCHEMA,
                  attribute_resolver: ->(record) { record.settings }
@@ -68,8 +67,6 @@ class Account < ApplicationRecord
   has_many :campaigns, dependent: :destroy_async
   has_many :canned_responses, dependent: :destroy_async
   has_many :categories, dependent: :destroy_async, class_name: '::Category'
-  has_many :communities, dependent: :destroy_async
-  has_many :community_groups, dependent: :destroy_async
   has_many :contacts, dependent: :destroy_async
   has_many :conversations, dependent: :destroy_async
   has_many :csat_survey_responses, dependent: :destroy_async
@@ -133,8 +130,7 @@ class Account < ApplicationRecord
   def webhook_data
     {
       id: id,
-      name: name,
-      external_id: external_id
+      name: name
     }
   end
 
@@ -186,7 +182,7 @@ class Account < ApplicationRecord
   end
 end
 
-Account.prepend_mod_with('Account')
+Account.include_mod_with('Account')
+Account.prepend_mod_with('Account::WebhookData')
 Account.prepend_mod_with('Account::PlanUsageAndLimits')
-Account.include_mod_with('Concerns::Account')
 Account.include_mod_with('Audit::Account')

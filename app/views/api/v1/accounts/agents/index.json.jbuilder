@@ -1,4 +1,4 @@
-json.array! (@agents + [@assistant].compact) do |agent|
+json.array!(@agents + [@assistant].compact) do |agent|
   if agent.is_a?(Assistant)
     json.partial! 'api/v1/models/assistant', formats: [:json], resource: agent
   else

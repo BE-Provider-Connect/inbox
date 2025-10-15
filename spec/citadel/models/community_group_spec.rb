@@ -1,12 +1,12 @@
 require 'rails_helper'
 
-RSpec.describe CommunityGroup do
+RSpec.describe CommunityGroup, type: :model do
   describe 'validations' do
     subject { build(:community_group) }
 
     it { is_expected.to validate_presence_of(:external_id) }
     it { is_expected.to validate_presence_of(:name) }
-    it { is_expected.to validate_uniqueness_of(:external_id) }
+    it { is_expected.to validate_uniqueness_of(:external_id).scoped_to(:account_id) }
   end
 
   describe 'associations' do

@@ -29,7 +29,7 @@ module AssignmentHandler
 
   def notify_assignment_change
     {
-      ASSIGNEE_CHANGED => -> { saved_change_to_assignee_id? || saved_change_to_assignee_type? },
+      ASSIGNEE_CHANGED => -> { saved_change_to_assignee_id? },
       TEAM_CHANGED => -> { saved_change_to_team_id? }
     }.each do |event, condition|
       condition.call && dispatcher_dispatch(event, previous_changes)
@@ -50,9 +50,9 @@ module AssignmentHandler
   end
 
   def self_assign?(assignee_id)
-    # Only consider it self-assignment if assignee_type is User and IDs match
-    assignee_id.present? &&
-      assignee_type == 'User' &&
-      Current.user&.id == assignee_id
+    assignee_id.present? && Current.user&.id == assignee_id
   end
 end
+
+# Load citadel extensions
+AssignmentHandler.prepend Citadel::AssignmentHandler if defined?(Citadel::AssignmentHandler)

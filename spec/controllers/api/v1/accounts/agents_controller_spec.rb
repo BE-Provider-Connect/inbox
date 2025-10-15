@@ -25,7 +25,8 @@ RSpec.describe 'Agents API', type: :request do
             as: :json
 
         expect(response).to have_http_status(:success)
-        expect(response.parsed_body.size).to eq(account.users.count)
+        # Response includes all users + Assistant singleton
+        expect(response.parsed_body.size).to eq(account.users.count + 1)
       end
 
       it 'returns custom fields on agents if present' do
