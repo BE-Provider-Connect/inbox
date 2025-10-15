@@ -9,8 +9,8 @@ module Citadel::Conversations::FilterService
 
     Conversations::PermissionFilterService.new(
       conversations,
-      user: @user,
-      params: @params
+      @user,
+      @account
     ).perform
   end
 end

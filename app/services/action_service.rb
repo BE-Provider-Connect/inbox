@@ -96,4 +96,4 @@ class ActionService
   end
 end
 
-ActionService.include_mod_with('ActionService')
+ActionService.prepend_mod_with('ActionService')
