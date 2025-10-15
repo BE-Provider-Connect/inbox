@@ -51,6 +51,21 @@ module Chatwoot
     enterprise_initializers = Rails.root.join('enterprise/config/initializers')
     Dir[enterprise_initializers.join('**/*.rb')].each { |f| require f } if enterprise_initializers.exist?
 
+    # Load citadel extensions (custom Chatwoot fork)
+    config.eager_load_paths << Rails.root.join('citadel/lib')
+    config.eager_load_paths << Rails.root.join('citadel/listeners')
+    # rubocop:disable Rails/FilePath
+    config.eager_load_paths += Dir["#{Rails.root}/citadel/app/**"]
+    config.eager_load_paths << Rails.root.join('citadel/app/controllers/concerns')
+    config.eager_load_paths << Rails.root.join('citadel/app/models/concerns')
+    # rubocop:enable Rails/FilePath
+    # Add citadel views to the view paths
+    config.paths['app/views'].unshift('citadel/app/views')
+
+    # Load citadel initializers alongside standard initializers
+    citadel_initializers = Rails.root.join('citadel/config/initializers')
+    Dir[citadel_initializers.join('**/*.rb')].each { |f| require f } if citadel_initializers.exist?
+
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration can go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded after loading

@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe CommunityGroup do
+RSpec.describe CommunityGroup, type: :model do
   describe 'validations' do
     subject { build(:community_group) }
 

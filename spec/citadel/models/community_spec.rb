@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe Community do
+RSpec.describe Community, type: :model do
   describe 'validations' do
     subject { build(:community) }
 

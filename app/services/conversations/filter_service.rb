@@ -25,8 +25,8 @@ class Conversations::FilterService < FilterService
 
   def base_relation
     conversations = @account.conversations.includes(
-      :taggings, :inbox, { contact: { avatar_attachment: [:blob] } }, :team, :messages, :contact_inbox
-    ).preload(assignee: { avatar_attachment: [:blob] })
+      :taggings, :inbox, { assignee: { avatar_attachment: [:blob] } }, { contact: { avatar_attachment: [:blob] } }, :team, :messages, :contact_inbox
+    )
 
     Conversations::PermissionFilterService.new(
       conversations,
@@ -50,3 +50,5 @@ class Conversations::FilterService < FilterService
     @conversations.sort_on_last_activity_at.page(current_page)
   end
 end
+
+Conversations::FilterService.prepend Citadel::Conversations::FilterService if defined?(Citadel::Conversations::FilterService)

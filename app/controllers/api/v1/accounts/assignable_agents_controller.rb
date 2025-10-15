@@ -9,11 +9,7 @@ class Api::V1::Accounts::AssignableAgentsController < Api::V1::Accounts::BaseCon
     end
     agent_ids = agent_ids.inject(:&)
     agents = Current.account.users.where(id: agent_ids)
-    # Include administrators and the AI Assistant
-    all_assignable = (agents + Current.account.administrators).uniq
-    assistant = Assistant.instance
-    all_assignable << assistant if assistant.enabled?
-    @assignable_agents = all_assignable
+    @assignable_agents = (agents + Current.account.administrators).uniq
   end
 
   private
@@ -26,3 +22,5 @@ class Api::V1::Accounts::AssignableAgentsController < Api::V1::Accounts::BaseCon
     params.permit(inbox_ids: [])
   end
 end
+
+Api::V1::Accounts::AssignableAgentsController.prepend_mod_with('Api::V1::Accounts::AssignableAgentsController')

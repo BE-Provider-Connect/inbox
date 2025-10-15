@@ -29,10 +29,7 @@ class Api::V1::Accounts::ArticlesController < Api::V1::Accounts::BaseController
   end
 
   def update
-    ActiveRecord::Base.transaction do
-      clear_ai_agent_associations_on_scope_change
-      @article.update!(article_params) if params[:article].present?
-    end
+    @article.update!(article_params) if params[:article].present?
     render json: { error: @article.errors.messages }, status: :unprocessable_entity and return unless @article.valid?
   end
 
@@ -72,35 +69,19 @@ class Api::V1::Accounts::ArticlesController < Api::V1::Accounts::BaseController
   def article_params
     params.require(:article).permit(
       :title, :slug, :position, :content, :description, :category_id, :author_id, :associated_article_id, :status,
-      :locale, :private, :ai_agent_enabled, :ai_agent_scope,
-      community_group_ids: [],
-      community_ids: [],
-      meta: [:title,
-             :description,
-             { tags: [] }]
+      :locale, meta: [:title,
+                      :description,
+                      { tags: [] }]
     )
   end
 
-  def clear_ai_agent_associations_on_scope_change
-    return if params.dig(:article, :ai_agent_scope).blank?
-
-    case params[:article][:ai_agent_scope]
-    when 'organization'
-      @article.community_groups.clear
-      @article.communities.clear
-    when 'community_group'
-      @article.communities.clear
-    when 'community'
-      @article.community_groups.clear
-    end
-  end
-
   def list_params
-    params.permit(:locale, :query, :page, :category_slug, :status, :author_id, :privacy,
-                  :ai_enabled, :ai_scope, community_group_ids: [], community_ids: [])
+    params.permit(:locale, :query, :page, :category_slug, :status, :author_id)
   end
 
   def set_current_page
     @current_page = params[:page] || 1
   end
 end
+
+Api::V1::Accounts::ArticlesController.prepend_mod_with('Api::V1::Accounts::ArticlesController')

@@ -4,9 +4,9 @@ class SlackUploadsController < ApplicationController
 
   def show
     if @blob
-      redirect_to blob_url, allow_other_host: true
+      redirect_to blob_url
     else
-      redirect_to avatar_url, allow_other_host: true
+      redirect_to avatar_url
     end
   end
 
@@ -30,3 +30,5 @@ class SlackUploadsController < ApplicationController
     "#{base_url}/integrations/slack/#{params[:sender_type]}.png"
   end
 end
+
+SlackUploadsController.prepend_mod_with('SlackUploadsController')
