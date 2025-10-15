@@ -4,8 +4,8 @@ require 'rails_helper'
 
 RSpec.describe Account, type: :model do
   describe 'associations' do
-    it { expect(Account.new).to have_many(:communities).dependent(:destroy_async) }
-    it { expect(Account.new).to have_many(:community_groups).dependent(:destroy_async) }
+    it { expect(described_class.new).to have_many(:communities).dependent(:destroy_async) }
+    it { expect(described_class.new).to have_many(:community_groups).dependent(:destroy_async) }
   end
 
   describe 'external_id validations' do

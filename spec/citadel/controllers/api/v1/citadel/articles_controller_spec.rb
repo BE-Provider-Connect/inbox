@@ -140,7 +140,7 @@ RSpec.describe 'Sync Articles API', type: :request do
     context 'with Authorization header' do
       it 'accepts Bearer token format' do
         get '/api/v1/citadel/articles',
-            headers: { 'citadel_api_key' => "#{valid_api_key}" },
+            headers: { 'citadel_api_key' => valid_api_key.to_s },
             as: :json
 
         expect(response).to have_http_status(:success)

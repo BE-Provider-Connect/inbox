@@ -3,7 +3,7 @@ class CreateAssistants < ActiveRecord::Migration[7.1]
     create_table :assistants do |t|
       t.string :name, null: false
       t.jsonb :settings, default: {}
-      t.boolean :enabled, default: true
+      t.boolean :enabled, default: true, null: false
       t.timestamps
     end
 

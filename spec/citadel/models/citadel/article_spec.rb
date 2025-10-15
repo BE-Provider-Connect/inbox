@@ -9,10 +9,10 @@ RSpec.describe Article, type: :model do
   let(:category_1) { create(:category, slug: 'category_1', locale: 'en', portal_id: portal_1.id) }
 
   describe 'associations' do
-    it { expect(Article.new).to have_many(:article_community_groups).dependent(:destroy) }
-    it { expect(Article.new).to have_many(:community_groups).through(:article_community_groups) }
-    it { expect(Article.new).to have_many(:article_communities).dependent(:destroy) }
-    it { expect(Article.new).to have_many(:communities).through(:article_communities) }
+    it { expect(described_class.new).to have_many(:article_community_groups).dependent(:destroy) }
+    it { expect(described_class.new).to have_many(:community_groups).through(:article_community_groups) }
+    it { expect(described_class.new).to have_many(:article_communities).dependent(:destroy) }
+    it { expect(described_class.new).to have_many(:communities).through(:article_communities) }
   end
 
   describe 'private field' do
@@ -53,22 +53,22 @@ RSpec.describe Article, type: :model do
     let!(:private_article) { create(:article, portal_id: portal_1.id, category_id: category_1.id, author_id: user.id, private: true) }
 
     it 'filters by public articles when privacy is public' do
-      articles = Article.search_by_privacy('public')
+      articles = described_class.search_by_privacy('public')
       expect(articles).to include(public_article)
       expect(articles).not_to include(private_article)
     end
 
     it 'filters by private articles when privacy is private' do
-      articles = Article.search_by_privacy('private')
+      articles = described_class.search_by_privacy('private')
       expect(articles).to include(private_article)
       expect(articles).not_to include(public_article)
     end
 
     it 'returns all articles when privacy is nil or blank' do
-      articles = Article.search_by_privacy(nil)
+      articles = described_class.search_by_privacy(nil)
       expect(articles).to include(public_article, private_article)
 
-      articles = Article.search_by_privacy('')
+      articles = described_class.search_by_privacy('')
       expect(articles).to include(public_article, private_article)
     end
   end

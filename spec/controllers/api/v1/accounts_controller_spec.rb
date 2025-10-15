@@ -197,7 +197,7 @@ RSpec.describe 'Accounts API', type: :request do
         company_size: '1-10'
       }
 
-      it 'modifies an account' do
+      it 'modifies an account' do # rubocop:disable RSpec/MultipleExpectations
         put "/api/v1/accounts/#{account.id}",
             params: params,
             headers: admin.create_new_auth_token,

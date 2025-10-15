@@ -2,9 +2,9 @@ json.id "assistant_#{resource.id}"
 json.uid "assistant_#{resource.id}"
 json.name resource.name
 json.display_name resource.display_name
-json.email "assistant@citadel.ai"
+json.email 'assistant@citadel.ai'
 json.account_id nil
-json.role "assistant"
+json.role 'assistant'
 json.confirmed true
 json.availability_status resource.availability_status
 json.auto_offline false
