@@ -1,5 +1,6 @@
 FactoryBot.define do
   factory :community do
+    account
     external_id { SecureRandom.uuid }
     name { Faker::Address.community }
     community_group { nil }

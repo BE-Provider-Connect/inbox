@@ -32,12 +32,14 @@ class BulkActionsJob < ApplicationJob
   end
 
   def handle_assignee_update(conversation, params)
-    return unless params[:assignee_id]
+    return unless params.key?(:assignee_id)
 
     type = (params[:assignee_type] || 'User').to_s.safe_constantize
     id = params[:assignee_id]
 
-    conversation.assignee = if type == User
+    conversation.assignee = if id.nil?
+                              nil
+                            elsif type == User
                               @account.users.find_by(id: id)
                             elsif type == Assistant
                               # Strip 'assistant_' prefix since frontend sends it with prefix
