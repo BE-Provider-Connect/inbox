@@ -37,3 +37,5 @@ class V2::Reports::AgentSummaryBuilder < V2::Reports::BaseSummaryBuilder
     :user_id
   end
 end
+
+V2::Reports::AgentSummaryBuilder.prepend_mod_with('V2::Reports::AgentSummaryBuilder')

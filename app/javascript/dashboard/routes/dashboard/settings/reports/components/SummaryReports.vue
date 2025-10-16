@@ -46,7 +46,9 @@ const rowItems = useMapGetter([props.getterKey]) || [];
 const reportMetrics = useMapGetter([props.summaryKey]) || [];
 
 const getMetrics = id =>
-  reportMetrics.value.find(metrics => metrics.id === Number(id)) || {};
+  reportMetrics.value.find(
+    metrics => metrics.id === id || metrics.id === Number(id)
+  ) || {};
 const columnHelper = createColumnHelper();
 const { t } = useI18n();
 
