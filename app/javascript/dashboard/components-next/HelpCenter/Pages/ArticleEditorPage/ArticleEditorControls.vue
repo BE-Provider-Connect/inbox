@@ -11,7 +11,7 @@ import Avatar from 'dashboard/components-next/avatar/Avatar.vue';
 import DropdownMenu from 'dashboard/components-next/dropdown-menu/DropdownMenu.vue';
 import ArticleEditorProperties from 'dashboard/components-next/HelpCenter/Pages/ArticleEditorPage/ArticleEditorProperties.vue';
 import AiAgentConfig from 'dashboard/components-next/HelpCenter/Pages/ArticleEditorPage/AiAgentConfig.vue';
-import CommunitiesAPI from 'dashboard/api/helpCenter/communities';
+import CommunitiesAPI from 'dashboard/api/citadel/communities';
 
 const props = defineProps({
   article: {

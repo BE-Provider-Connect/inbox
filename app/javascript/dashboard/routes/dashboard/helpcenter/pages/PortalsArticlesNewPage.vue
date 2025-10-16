@@ -23,7 +23,7 @@ const categories = useMapGetter('categories/allCategories');
 
 const categoryId = computed(() => categories.value[0]?.id || null);
 
-// Get privacy from query parameter and set default
+// Citadel: Initialize article privacy from query parameter
 const defaultPrivacy = route.query.privacy === 'private';
 
 const article = ref({
@@ -43,6 +43,7 @@ const setCategoryId = newCategoryId => {
 const createNewArticle = async ({ title, content, private: isPrivate }) => {
   if (title) article.value.title = title;
   if (content) article.value.content = content;
+  // Citadel: Handle article privacy
   if (isPrivate !== undefined) article.value.private = isPrivate;
 
   if (!article.value.title || !article.value.content) return;

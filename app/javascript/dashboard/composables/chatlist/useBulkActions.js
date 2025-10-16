@@ -51,6 +51,7 @@ export function useBulkActions() {
   async function onAssignAgent(agent, conversationId = null) {
     try {
       const agentId = agent.id;
+      // Citadel: Support assistant assignments alongside user assignments
       const assigneeType = agent?.type === 'assistant' ? 'Assistant' : 'User';
       const fields = {
         assignee_id: agentId,
