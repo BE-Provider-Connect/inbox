@@ -135,3 +135,5 @@ class Api::V2::Accounts::ReportsController < Api::V1::Accounts::BaseController
     V2::ReportBuilder.new(Current.account, conversation_params).conversation_metrics
   end
 end
+
+Api::V2::Accounts::ReportsController.prepend_mod_with('Api::V2::Accounts::ReportsController')
