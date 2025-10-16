@@ -36,11 +36,10 @@ class Api::V1::Citadel::Accounts::Conversations::AssignmentsController < Api::Ba
   def render_assignee(assignee)
     if assignee.nil?
       render json: nil
-    elsif assignee.is_a?(Assistant)
-      render partial: 'api/v1/models/assistant', formats: [:json], locals: { resource: assignee }
     else
-      # Users use the standard agent partial
-      render partial: 'api/v1/models/agent', formats: [:json], locals: { resource: assignee }
+      # Determine which partial to use based on assignee_type, not the object's class
+      partial_name = @conversation.assignee_type == 'Assistant' ? 'api/v1/models/assistant' : 'api/v1/models/agent'
+      render partial: partial_name, formats: [:json], locals: { resource: assignee }
     end
   end
 
