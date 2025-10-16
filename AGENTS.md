@@ -57,6 +57,27 @@
 
 - Use compact `module/class` definitions; avoid nested styles
 
+## Citadel Fork Isolation Strategy
+
+We maintain a fork of Chatwoot with custom extensions in the `citadel/` directory. The goal is to minimize merge conflicts when pulling upstream changes.
+
+### Backend Isolation (Already Implemented)
+- All citadel code lives in `citadel/app/` following the Enterprise Edition pattern
+- Use `prepend_mod_with` and `include_mod_with` to extend core classes without modifying upstream files
+- See `citadel/README.md` for complete backend isolation guidelines
+
+### Frontend Isolation Rules
+
+**Golden Rules to Minimize Conflicts:**
+
+1. **Add, don't modify** - Insert new code blocks instead of changing existing ones
+2. **Stay at boundaries** - Add code at start/end of sections, not in the middle
+3. **Namespace API clients** - Use `app/javascript/dashboard/api/citadel/`
+4. **Prefer new components** - Create new components over modifying existing ones
+5. **Keep citadel code clearly separated and greppable**
+
+**Expected conflict rate:** ~10-15% of upstream merges (1-3 files, 5-15 min to resolve)
+
 ## Enterprise Edition Notes
 
 - Chatwoot has an Enterprise overlay under `enterprise/` that extends/overrides OSS code.

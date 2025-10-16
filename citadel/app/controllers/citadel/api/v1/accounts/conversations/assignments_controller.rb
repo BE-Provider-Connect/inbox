@@ -27,14 +27,22 @@ module Citadel::Api::V1::Accounts::Conversations::AssignmentsController
 
     @conversation.assignee = @agent
     @conversation.save!
+
     render_agent
   end
 
   def render_agent
     return render json: nil if @agent.nil?
 
+    # Determine partial based on actual type, handling STI (SuperAdmin -> user)
+    partial_name = if @agent.is_a?(Assistant)
+                     'assistant'
+                   else
+                     'agent' # Use agent partial for all User subclasses (User, SuperAdmin, etc)
+                   end
+
     render(
-      partial: "api/v1/models/#{@agent.model_name.singular}",
+      partial: "api/v1/models/#{partial_name}",
       formats: [:json],
       locals: { resource: @agent }
     )

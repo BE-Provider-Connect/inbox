@@ -11,6 +11,7 @@ import {
   ARTICLE_TABS_OPTIONS,
 } from 'dashboard/helper/portalHelper';
 
+import TabBar from 'dashboard/components-next/tabbar/TabBar.vue';
 import Button from 'dashboard/components-next/button/Button.vue';
 import DropdownMenu from 'dashboard/components-next/dropdown-menu/DropdownMenu.vue';
 import AiAgentFilter from './AiAgentFilter.vue';
@@ -28,6 +29,7 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  // Citadel: community data for AI filtering
   communityGroups: {
     type: Array,
     default: () => [],
@@ -46,8 +48,8 @@ const emit = defineEmits([
   'tabChange',
   'localeChange',
   'categoryChange',
-  'privacyChange',
-  'aiFilterChange',
+  'privacyChange', // Citadel
+  'aiFilterChange', // Citadel
   'newArticle',
 ]);
 
@@ -55,11 +57,12 @@ const route = useRoute();
 const { t } = useI18n();
 const { updateUISettings } = useUISettings();
 
-const isStatusMenuOpen = ref(false);
 const isCategoryMenuOpen = ref(false);
 const isLocaleMenuOpen = ref(false);
+// Citadel: additional filter states
 const isPrivacyMenuOpen = ref(false);
 const isAiFilterMenuOpen = ref(false);
+const isStatusMenuOpen = ref(false);
 
 const countKey = tab => {
   if (tab.value === 'all') {
@@ -68,17 +71,22 @@ const countKey = tab => {
   return `${tab.value}ArticlesCount`;
 };
 
-const statusOptions = computed(() => {
+// Citadel: Check if citadel features are enabled (community data present)
+const hasCitadelFeatures = computed(() => {
+  return props.communityGroups !== undefined;
+});
+
+const tabs = computed(() => {
   return ARTICLE_TABS_OPTIONS.map(tab => ({
-    label: `${t(`HELP_CENTER.ARTICLES_PAGE.ARTICLES_HEADER.TABS.${tab.key}`)} (${props.meta[countKey(tab)]})`,
+    label: t(`HELP_CENTER.ARTICLES_PAGE.ARTICLES_HEADER.TABS.${tab.key}`),
     value: tab.value,
-    action: 'filter',
+    count: props.meta[countKey(tab)],
   }));
 });
 
-const activeStatus = computed(() => {
+const activeTabIndex = computed(() => {
   const tabParam = route.params.tab || ARTICLE_TABS.ALL;
-  return statusOptions.value.find(opt => opt.value === tabParam);
+  return tabs.value.findIndex(tab => tab.value === tabParam);
 });
 
 const activeCategoryName = computed(() => {
@@ -131,6 +139,7 @@ const localeMenuItems = computed(() => {
   }));
 });
 
+// Citadel: Privacy filter
 const activePrivacyFilter = computed(() => {
   const privacyParam = route.query.privacy;
   if (privacyParam === 'private') {
@@ -162,28 +171,7 @@ const privacyMenuItems = computed(() => {
   ];
 });
 
-const handleLocaleAction = ({ value }) => {
-  emit('localeChange', value);
-  isLocaleMenuOpen.value = false;
-  updateUISettings({
-    last_active_locale_code: value,
-  });
-};
-
-const handleCategoryAction = ({ value }) => {
-  emit('categoryChange', value);
-  isCategoryMenuOpen.value = false;
-};
-
-const handlePrivacyAction = ({ value }) => {
-  emit('privacyChange', value);
-  isPrivacyMenuOpen.value = false;
-};
-
-const handleNewArticle = () => {
-  emit('newArticle');
-};
-
+// Citadel: AI filter helpers
 const hasActiveAiFilters = computed(() => {
   return props.currentAiFilter && Object.keys(props.currentAiFilter).length > 0;
 });
@@ -223,6 +211,40 @@ const aiFilterLabel = computed(() => {
     : t('HELP_CENTER.ARTICLES_PAGE.AI_FILTER.TITLE');
 });
 
+// Citadel: Status dropdown (replaces TabBar when citadel features enabled)
+const activeStatusLabel = computed(() => {
+  const activeTab = tabs.value[activeTabIndex.value];
+  return activeTab ? activeTab.label : tabs.value[0]?.label;
+});
+
+const statusMenuItems = computed(() => {
+  return tabs.value.map(tab => ({
+    label: `${tab.label} (${tab.count})`,
+    value: tab.value,
+    action: 'filter',
+  }));
+});
+
+const handleLocaleAction = ({ value }) => {
+  emit('localeChange', value);
+  isLocaleMenuOpen.value = false;
+  updateUISettings({
+    last_active_locale_code: value,
+  });
+};
+
+const handleCategoryAction = ({ value }) => {
+  emit('categoryChange', value);
+  isCategoryMenuOpen.value = false;
+};
+
+// Citadel: Privacy filter handler
+const handlePrivacyAction = ({ value }) => {
+  emit('privacyChange', value);
+  isPrivacyMenuOpen.value = false;
+};
+
+// Citadel: AI filter handlers
 const handleAiFilterApply = filter => {
   emit('aiFilterChange', filter);
   isAiFilterMenuOpen.value = false;
@@ -233,132 +255,146 @@ const handleAiFilterClear = () => {
   isAiFilterMenuOpen.value = false;
 };
 
-const handleStatusChange = ({ value }) => {
-  emit('tabChange', { value });
+const handleNewArticle = () => {
+  emit('newArticle');
+};
+
+const handleTabChange = value => {
+  emit('tabChange', value);
+};
+
+// Citadel: Status dropdown handler
+const handleStatusAction = ({ value }) => {
+  emit('tabChange', value);
   isStatusMenuOpen.value = false;
 };
 </script>
 
 <template>
-  <div class="flex items-start justify-between w-full gap-2">
-    <div class="flex items-center gap-2">
-      <!-- Status Filter -->
-      <div class="relative group">
-        <OnClickOutside @trigger="isStatusMenuOpen = false">
-          <Button
-            :label="activeStatus?.label"
-            icon="i-lucide-chevron-down"
-            size="sm"
-            color="slate"
-            trailing-icon
-            @click="isStatusMenuOpen = !isStatusMenuOpen"
-          />
-
-          <DropdownMenu
-            v-if="isStatusMenuOpen"
-            :menu-items="statusOptions"
-            class="left-0 w-48 mt-2 overflow-y-auto xl:right-0 top-full max-h-60"
-            @action="handleStatusChange"
-          />
-        </OnClickOutside>
-      </div>
-
-      <!-- Locale Filter -->
-      <div class="relative group">
-        <OnClickOutside @trigger="isLocaleMenuOpen = false">
-          <Button
-            :label="activeLocaleName"
-            size="sm"
-            icon="i-lucide-chevron-down"
-            color="slate"
-            trailing-icon
-            @click="isLocaleMenuOpen = !isLocaleMenuOpen"
-          />
-
-          <DropdownMenu
-            v-if="isLocaleMenuOpen"
-            :menu-items="localeMenuItems"
-            show-search
-            class="left-0 w-40 max-w-[300px] mt-2 overflow-y-auto xl:right-0 top-full max-h-60"
-            @action="handleLocaleAction"
-          />
-        </OnClickOutside>
-      </div>
-
-      <!-- Category Filter -->
-      <div v-if="hasCategoryMenuItems" class="relative group">
-        <OnClickOutside @trigger="isCategoryMenuOpen = false">
-          <Button
-            :label="activeCategoryName"
-            icon="i-lucide-chevron-down"
-            size="sm"
-            color="slate"
-            trailing-icon
-            class="max-w-48"
-            @click="isCategoryMenuOpen = !isCategoryMenuOpen"
-          />
-
-          <DropdownMenu
-            v-if="isCategoryMenuOpen"
-            :menu-items="categoryMenuItems"
-            show-search
-            class="left-0 w-48 mt-2 overflow-y-auto xl:right-0 top-full max-h-60"
-            @action="handleCategoryAction"
-          />
-        </OnClickOutside>
-      </div>
-
-      <!-- Privacy Filter -->
-      <div class="relative group">
-        <OnClickOutside @trigger="isPrivacyMenuOpen = false">
-          <Button
-            :label="activePrivacyFilter"
-            icon="i-lucide-chevron-down"
-            size="sm"
-            color="slate"
-            trailing-icon
-            @click="isPrivacyMenuOpen = !isPrivacyMenuOpen"
-          />
-
-          <DropdownMenu
-            v-if="isPrivacyMenuOpen"
-            :menu-items="privacyMenuItems"
-            class="left-0 w-40 mt-2 overflow-y-auto xl:right-0 top-full max-h-60"
-            @action="handlePrivacyAction"
-          />
-        </OnClickOutside>
-      </div>
-
-      <!-- AI Filter -->
-      <div class="relative group">
-        <OnClickOutside @trigger="isAiFilterMenuOpen = false">
-          <Button
-            :label="aiFilterLabel"
-            icon="i-lucide-chevron-down"
-            size="sm"
-            color="slate"
-            trailing-icon
-            @click="isAiFilterMenuOpen = !isAiFilterMenuOpen"
-          />
-
-          <AiAgentFilter
-            v-if="isAiFilterMenuOpen"
-            :community-groups="communityGroups"
-            :communities="communities"
-            :current-filter="currentAiFilter"
-            class="absolute left-0 mt-2 z-10 xl:right-0 top-full"
-            @apply="handleAiFilterApply"
-            @clear="handleAiFilterClear"
-          />
-        </OnClickOutside>
-      </div>
+  <div class="flex flex-col items-start w-full gap-2 lg:flex-row">
+    <!-- Citadel: Show status dropdown instead of TabBar when citadel features enabled -->
+    <div v-if="!hasCitadelFeatures" class="flex items-start w-full gap-2">
+      <TabBar
+        :tabs="tabs"
+        :initial-active-tab="activeTabIndex"
+        @tab-changed="handleTabChange"
+      />
     </div>
+    <div class="flex items-start justify-between w-full gap-2">
+      <div class="flex items-center gap-2">
+        <!-- Citadel: Status dropdown (replaces TabBar) -->
+        <div v-if="hasCitadelFeatures" class="relative group">
+          <OnClickOutside @trigger="isStatusMenuOpen = false">
+            <Button
+              :label="activeStatusLabel"
+              icon="i-lucide-chevron-down"
+              size="sm"
+              color="slate"
+              trailing-icon
+              @click="isStatusMenuOpen = !isStatusMenuOpen"
+            />
 
-    <Button
-      :label="t('HELP_CENTER.ARTICLES_PAGE.ARTICLES_HEADER.NEW_ARTICLE')"
-      icon="i-lucide-plus"
-      size="sm"
-      @click="handleNewArticle"
-    />
+            <DropdownMenu
+              v-if="isStatusMenuOpen"
+              :menu-items="statusMenuItems"
+              class="left-0 w-48 mt-2 overflow-y-auto xl:right-0 top-full max-h-60"
+              @action="handleStatusAction"
+            />
+          </OnClickOutside>
+        </div>
+        <div class="relative group">
+          <OnClickOutside @trigger="isLocaleMenuOpen = false">
+            <Button
+              :label="activeLocaleName"
+              size="sm"
+              icon="i-lucide-chevron-down"
+              color="slate"
+              trailing-icon
+              @click="isLocaleMenuOpen = !isLocaleMenuOpen"
+            />
+
+            <DropdownMenu
+              v-if="isLocaleMenuOpen"
+              :menu-items="localeMenuItems"
+              show-search
+              class="left-0 w-40 max-w-[300px] mt-2 overflow-y-auto xl:right-0 top-full max-h-60"
+              @action="handleLocaleAction"
+            />
+          </OnClickOutside>
+        </div>
+        <div v-if="hasCategoryMenuItems" class="relative group">
+          <OnClickOutside @trigger="isCategoryMenuOpen = false">
+            <Button
+              :label="activeCategoryName"
+              icon="i-lucide-chevron-down"
+              size="sm"
+              color="slate"
+              trailing-icon
+              class="max-w-48"
+              @click="isCategoryMenuOpen = !isCategoryMenuOpen"
+            />
+
+            <DropdownMenu
+              v-if="isCategoryMenuOpen"
+              :menu-items="categoryMenuItems"
+              show-search
+              class="left-0 w-48 mt-2 overflow-y-auto xl:right-0 top-full max-h-60"
+              @action="handleCategoryAction"
+            />
+          </OnClickOutside>
+        </div>
+
+        <!-- Citadel: Privacy Filter -->
+        <div class="relative group">
+          <OnClickOutside @trigger="isPrivacyMenuOpen = false">
+            <Button
+              :label="activePrivacyFilter"
+              icon="i-lucide-chevron-down"
+              size="sm"
+              color="slate"
+              trailing-icon
+              @click="isPrivacyMenuOpen = !isPrivacyMenuOpen"
+            />
+
+            <DropdownMenu
+              v-if="isPrivacyMenuOpen"
+              :menu-items="privacyMenuItems"
+              class="left-0 w-40 mt-2 overflow-y-auto xl:right-0 top-full max-h-60"
+              @action="handlePrivacyAction"
+            />
+          </OnClickOutside>
+        </div>
+
+        <!-- Citadel: AI Filter -->
+        <div class="relative group">
+          <OnClickOutside @trigger="isAiFilterMenuOpen = false">
+            <Button
+              :label="aiFilterLabel"
+              icon="i-lucide-chevron-down"
+              size="sm"
+              color="slate"
+              trailing-icon
+              @click="isAiFilterMenuOpen = !isAiFilterMenuOpen"
+            />
+
+            <AiAgentFilter
+              v-if="isAiFilterMenuOpen"
+              :community-groups="communityGroups"
+              :communities="communities"
+              :current-filter="currentAiFilter"
+              class="absolute left-0 mt-2 z-10 xl:right-0 top-full"
+              @apply="handleAiFilterApply"
+              @clear="handleAiFilterClear"
+            />
+          </OnClickOutside>
+        </div>
+      </div>
+      <Button
+        :label="t('HELP_CENTER.ARTICLES_PAGE.ARTICLES_HEADER.NEW_ARTICLE')"
+        icon="i-lucide-plus"
+        size="sm"
+        @click="handleNewArticle"
+      />
+    </div>
   </div>
 </template>

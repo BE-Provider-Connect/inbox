@@ -5,7 +5,7 @@ import { useMapGetter, useStore } from 'dashboard/composables/store.js';
 import allLocales from 'shared/constants/locales.js';
 import { getArticleStatus } from 'dashboard/helper/portalHelper.js';
 import ArticlesPage from 'dashboard/components-next/HelpCenter/Pages/ArticlePage/ArticlesPage.vue';
-import CommunitiesAPI from 'dashboard/api/helpCenter/communities';
+import CommunitiesAPI from 'dashboard/api/citadel/communities';
 
 const route = useRoute();
 const router = useRouter();
