@@ -21,36 +21,43 @@ class Webhooks::Trigger
   private
 
   def perform_request
-    headers = { content_type: :json, accept: :json }
-
-    # Add API key header only for Assistant webhooks going to Citadel
-    headers['X-Api-Key'] = ENV.fetch('CITADEL_API_KEY', nil) if assistant_webhook_to_citadel?
-
     RestClient::Request.execute(
       method: :post,
       url: @url,
       payload: @payload.to_json,
-      headers: headers,
+      headers: { content_type: :json, accept: :json },
       timeout: 5
     )
   end
 
-  def assistant_webhook_to_citadel?
-    citadel_webhook_url = ENV.fetch('CITADEL_API_WEBHOOK_URL', nil)
-    return false if citadel_webhook_url.blank?
-
-    @webhook_type == :assistant_webhook && @url.start_with?(citadel_webhook_url)
-  end
-
   def handle_error(error)
-    return unless should_handle_error?
+    return unless SUPPORTED_ERROR_HANDLE_EVENTS.include?(@payload[:event])
     return unless message
 
-    update_message_status(error)
+    case @webhook_type
+    when :agent_bot_webhook
+      conversation = message.conversation
+      return unless conversation&.pending?
+
+      conversation.open!
+      create_agent_bot_error_activity(conversation)
+    when :api_inbox_webhook
+      update_message_status(error)
+    end
   end
 
-  def should_handle_error?
-    @webhook_type == :api_inbox_webhook && SUPPORTED_ERROR_HANDLE_EVENTS.include?(@payload[:event])
+  def create_agent_bot_error_activity(conversation)
+    content = I18n.t('conversations.activity.agent_bot.error_moved_to_open')
+    Conversations::ActivityMessageJob.perform_later(conversation, activity_message_params(conversation, content))
+  end
+
+  def activity_message_params(conversation, content)
+    {
+      account_id: conversation.account_id,
+      inbox_id: conversation.inbox_id,
+      message_type: :activity,
+      content: content
+    }
   end
 
   def update_message_status(error)

@@ -128,4 +128,3 @@ module ActivityMessageHandler
 end
 
 ActivityMessageHandler.prepend_mod_with('ActivityMessageHandler')
-ActivityMessageHandler.prepend Citadel::ActivityMessageHandler if defined?(Citadel::ActivityMessageHandler)

@@ -16,8 +16,6 @@ class Messages::NewMessageNotificationService
     return if conversation.assignee.blank?
     return if already_notified?(conversation.assignee)
     return if conversation.assignee == sender
-    # Don't notify assistants - they don't have notification preferences
-    return if conversation.assignee.is_a?(Assistant)
 
     NotificationBuilder.new(
       notification_type: 'assigned_conversation_new_message',
@@ -51,3 +49,5 @@ class Messages::NewMessageNotificationService
     conversation.notifications.exists?(user: user, secondary_actor: message)
   end
 end
+
+Messages::NewMessageNotificationService.prepend_mod_with('Messages::NewMessageNotificationService')

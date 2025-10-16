@@ -316,8 +316,10 @@ Rails.application.routes.draw do
             end
           end
 
-          resources :community_groups, only: [:index, :show]
-          resources :communities, only: [:index, :show]
+          if ChatwootApp.citadel?
+            resources :community_groups, only: [:index, :show]
+            resources :communities, only: [:index, :show]
+          end
 
           resources :upload, only: [:create]
         end
@@ -329,19 +331,21 @@ Rails.application.routes.draw do
         resources :webhooks, only: [:create]
       end
 
-      # API endpoints for external service integration (Citadel API)
-      namespace :citadel do
-        resources :articles, only: [:index, :show]
-        resources :accounts, only: [] do
-          scope module: :accounts do
-            resources :conversations, only: [:show] do
-              scope module: :conversations do
-                resources :messages, only: [:index, :create]
-                resources :labels, only: [:create]
-                resource :assignments, only: [:create]
-              end
-              member do
-                post :toggle_status
+      if ChatwootApp.citadel?
+        # API endpoints for external service integration (Citadel API)
+        namespace :citadel do
+          resources :articles, only: [:index, :show]
+          resources :accounts, only: [] do
+            scope module: :accounts do
+              resources :conversations, only: [:show] do
+                scope module: :conversations do
+                  resources :messages, only: [:index, :create]
+                  resources :labels, only: [:create]
+                  resource :assignments, only: [:create]
+                end
+                member do
+                  post :toggle_status
+                end
               end
             end
           end

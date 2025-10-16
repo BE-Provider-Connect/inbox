@@ -83,24 +83,6 @@ RSpec.describe 'Public Articles API', type: :request do
       response_data = JSON.parse(response.body, symbolize_names: true)[:payload]
       expect(response_data.length).to eq(3)
     end
-
-    it 'excludes private articles from public portal' do
-      # Create a private published article
-      private_article = create(:article, category: category, portal: portal, account_id: account.id,
-                                         author_id: agent.id, status: :published, private: true)
-
-      get "/hc/#{portal.slug}/#{category.locale}/articles.json"
-
-      expect(response).to have_http_status(:success)
-      response_data = JSON.parse(response.body, symbolize_names: true)[:payload]
-
-      # Should not include the private article
-      article_ids = response_data.map { |a| a[:id] }
-      expect(article_ids).not_to include(private_article.id)
-
-      # Count should only include public articles
-      expect(JSON.parse(response.body, symbolize_names: true)[:meta][:articles_count]).to eq(3)
-    end
   end
 
   describe 'GET /public/api/v1/portals/:slug/articles/:id' do
@@ -122,13 +104,6 @@ RSpec.describe 'Public Articles API', type: :request do
       article_in_locale = create(:article, category: category_2, portal: portal, account_id: account.id, author_id: agent.id)
       get "/hc/#{portal.slug}/articles/#{article_in_locale.slug}"
       expect(response).to have_http_status(:success)
-    end
-
-    it 'returns 404 for private articles' do
-      private_article = create(:article, category: category, portal: portal, account_id: account.id,
-                                         author_id: agent.id, status: :published, private: true)
-      get "/hc/#{portal.slug}/articles/#{private_article.slug}"
-      expect(response).to have_http_status(:not_found)
     end
   end
 
@@ -159,15 +134,6 @@ RSpec.describe 'Public Articles API', type: :request do
       get "/hc/#{portal.slug}/articles/non-existent-article.png"
 
       expect(response).to have_http_status(:not_found)
-    end
-
-    it 'returns 404 for private articles tracking pixel' do
-      private_article = create(:article, category: category, portal: portal, account_id: account.id,
-                                         author_id: agent.id, status: :published, private: true, views: 0)
-      get "/hc/#{portal.slug}/articles/#{private_article.slug}.png"
-
-      expect(response).to have_http_status(:not_found)
-      expect(private_article.reload.views).to eq 0
     end
 
     it 'sets proper cache headers for performance' do
