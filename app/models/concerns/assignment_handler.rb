@@ -54,5 +54,4 @@ module AssignmentHandler
   end
 end
 
-# Load citadel extensions
-AssignmentHandler.prepend Citadel::AssignmentHandler if defined?(Citadel::AssignmentHandler)
+AssignmentHandler.prepend_mod_with('AssignmentHandler')

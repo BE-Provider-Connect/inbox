@@ -62,6 +62,7 @@ const isLocaleMenuOpen = ref(false);
 // Citadel: additional filter states
 const isPrivacyMenuOpen = ref(false);
 const isAiFilterMenuOpen = ref(false);
+const isStatusMenuOpen = ref(false);
 
 const countKey = tab => {
   if (tab.value === 'all') {
@@ -69,6 +70,11 @@ const countKey = tab => {
   }
   return `${tab.value}ArticlesCount`;
 };
+
+// Citadel: Check if citadel features are enabled (community data present)
+const hasCitadelFeatures = computed(() => {
+  return props.communityGroups !== undefined;
+});
 
 const tabs = computed(() => {
   return ARTICLE_TABS_OPTIONS.map(tab => ({
@@ -205,6 +211,20 @@ const aiFilterLabel = computed(() => {
     : t('HELP_CENTER.ARTICLES_PAGE.AI_FILTER.TITLE');
 });
 
+// Citadel: Status dropdown (replaces TabBar when citadel features enabled)
+const activeStatusLabel = computed(() => {
+  const activeTab = tabs.value[activeTabIndex.value];
+  return activeTab ? activeTab.label : tabs.value[0]?.label;
+});
+
+const statusMenuItems = computed(() => {
+  return tabs.value.map(tab => ({
+    label: `${tab.label} (${tab.count})`,
+    value: tab.value,
+    action: 'filter',
+  }));
+});
+
 const handleLocaleAction = ({ value }) => {
   emit('localeChange', value);
   isLocaleMenuOpen.value = false;
@@ -242,17 +262,46 @@ const handleNewArticle = () => {
 const handleTabChange = value => {
   emit('tabChange', value);
 };
+
+// Citadel: Status dropdown handler
+const handleStatusAction = ({ value }) => {
+  emit('tabChange', value);
+  isStatusMenuOpen.value = false;
+};
 </script>
 
 <template>
   <div class="flex flex-col items-start w-full gap-2 lg:flex-row">
-    <TabBar
-      :tabs="tabs"
-      :initial-active-tab="activeTabIndex"
-      @tab-changed="handleTabChange"
-    />
+    <!-- Citadel: Show status dropdown instead of TabBar when citadel features enabled -->
+    <div v-if="!hasCitadelFeatures" class="flex items-start w-full gap-2">
+      <TabBar
+        :tabs="tabs"
+        :initial-active-tab="activeTabIndex"
+        @tab-changed="handleTabChange"
+      />
+    </div>
     <div class="flex items-start justify-between w-full gap-2">
       <div class="flex items-center gap-2">
+        <!-- Citadel: Status dropdown (replaces TabBar) -->
+        <div v-if="hasCitadelFeatures" class="relative group">
+          <OnClickOutside @trigger="isStatusMenuOpen = false">
+            <Button
+              :label="activeStatusLabel"
+              icon="i-lucide-chevron-down"
+              size="sm"
+              color="slate"
+              trailing-icon
+              @click="isStatusMenuOpen = !isStatusMenuOpen"
+            />
+
+            <DropdownMenu
+              v-if="isStatusMenuOpen"
+              :menu-items="statusMenuItems"
+              class="left-0 w-48 mt-2 overflow-y-auto xl:right-0 top-full max-h-60"
+              @action="handleStatusAction"
+            />
+          </OnClickOutside>
+        </div>
         <div class="relative group">
           <OnClickOutside @trigger="isLocaleMenuOpen = false">
             <Button

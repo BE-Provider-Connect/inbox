@@ -31,7 +31,7 @@ RSpec.describe 'Citadel API Conversations Assignments API', type: :request do
         expect(response).to have_http_status(:success)
         json = response.parsed_body
 
-        expect(json['assignee_id']).to eq(user.id)
+        expect(json['id']).to eq(user.id)
         expect(conversation.reload.assignee_id).to eq(user.id)
       end
 
@@ -46,7 +46,7 @@ RSpec.describe 'Citadel API Conversations Assignments API', type: :request do
         expect(response).to have_http_status(:success)
         json = response.parsed_body
 
-        expect(json['assignee_id']).to be_nil
+        expect(json).to be_nil
         expect(conversation.reload.assignee_id).to be_nil
       end
 
@@ -62,7 +62,7 @@ RSpec.describe 'Citadel API Conversations Assignments API', type: :request do
         expect(response).to have_http_status(:success)
         json = response.parsed_body
 
-        expect(json['assignee_id']).to eq(another_user.id)
+        expect(json['id']).to eq(another_user.id)
         expect(conversation.reload.assignee_id).to eq(another_user.id)
       end
 

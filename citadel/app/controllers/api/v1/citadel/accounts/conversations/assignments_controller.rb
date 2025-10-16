@@ -8,12 +8,41 @@ class Api::V1::Citadel::Accounts::Conversations::AssignmentsController < Api::Ba
   respond_to :json
 
   def create
-    assignee = (@conversation.account.users.find_by(id: params[:assignee_id]) if params[:assignee_id].present?)
-    @conversation.update!(assignee: assignee)
-    render json: { assignee_id: @conversation.assignee_id }
+    assignee = find_assignee
+
+    # Set Current.executed_by to enable activity message creation
+    # Since this is an API call without a user session, we use :automation
+    Current.executed_by = :automation
+
+    @conversation.assignee = assignee
+    @conversation.save!
+    render_assignee(assignee)
   end
 
   private
+
+  def find_assignee
+    return nil if params[:assignee_id].blank?
+
+    if params[:assignee_id].to_s.start_with?('assistant_')
+      # Extract numeric ID from "assistant_1" format
+      numeric_id = params[:assignee_id].to_s.gsub(/\D/, '').to_i
+      Assistant.find_by(id: numeric_id)
+    else
+      @conversation.account.users.find_by(id: params[:assignee_id])
+    end
+  end
+
+  def render_assignee(assignee)
+    if assignee.nil?
+      render json: nil
+    elsif assignee.is_a?(Assistant)
+      render partial: 'api/v1/models/assistant', formats: [:json], locals: { resource: assignee }
+    else
+      # Users use the standard agent partial
+      render partial: 'api/v1/models/agent', formats: [:json], locals: { resource: assignee }
+    end
+  end
 
   def set_conversation
     # Use display_id instead of id for lookup (webhooks use display_id)
