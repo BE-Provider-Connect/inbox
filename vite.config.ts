@@ -45,7 +45,12 @@ if (isLibraryMode) {
 export default defineConfig({
   plugins: plugins,
   build: {
+    // Memory optimizations for Heroku
+    sourcemap: false, // Disable sourcemaps to save memory
+    minify: 'terser', // Use terser for better memory efficiency
+    chunkSizeWarningLimit: 2000,
     rollupOptions: {
+      maxParallelFileOps: 1, // Process files sequentially to reduce memory usage
       output: {
         // [NOTE] when not in library mode, no new keys will be addedd or overwritten
         // setting dir: isLibraryMode ? 'public/packs' : undefined will not work
