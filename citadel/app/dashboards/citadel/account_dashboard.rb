@@ -23,17 +23,17 @@ AccountDashboard.class_eval do
                                end
 
   ATTRIBUTE_TYPES = {
-    id: Field::Number.with_options(searchable: true),
-    name: Field::String.with_options(searchable: true),
-    external_id: Field::String.with_options(searchable: true),
-    created_at: Field::DateTime,
-    updated_at: Field::DateTime,
+    id: Administrate::Field::Number.with_options(searchable: true),
+    name: Administrate::Field::String.with_options(searchable: true),
+    external_id: Administrate::Field::String.with_options(searchable: true),
+    created_at: Administrate::Field::DateTime,
+    updated_at: Administrate::Field::DateTime,
     users: CountField,
     conversations: CountField,
-    locale: Field::Select.with_options(collection: LANGUAGES_CONFIG.map { |_x, y| y[:iso_639_1_code] }),
-    status: Field::Select.with_options(collection: [%w[Active active], %w[Suspended suspended]]),
-    account_users: Field::HasMany,
-    custom_attributes: Field::String
+    locale: Administrate::Field::Select.with_options(collection: LANGUAGES_CONFIG.map { |_x, y| y[:iso_639_1_code] }),
+    status: Administrate::Field::Select.with_options(collection: [%w[Active active], %w[Suspended suspended]]),
+    account_users: Administrate::Field::HasMany,
+    custom_attributes: Administrate::Field::String
   }.merge(enterprise_attribute_types).freeze
 
   COLLECTION_ATTRIBUTES = %i[
