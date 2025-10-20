@@ -2,12 +2,21 @@ class AssistantListener < BaseListener
   def assignee_changed(event)
     conversation, account = extract_conversation_and_account(event)
 
+    Rails.logger.info "[AssistantListener] assignee_changed: conversation=#{conversation.id}, assignee_type=#{conversation.assignee_type}"
+
     # Only trigger if assigned to assistant
-    return unless conversation.assignee_type == 'Assistant'
+    unless conversation.assignee_type == 'Assistant'
+      Rails.logger.info '[AssistantListener] Skipping - not assigned to Assistant'
+      return
+    end
 
     # Only trigger for verified conversations
-    return unless conversation_verified?(conversation)
+    unless conversation_verified?(conversation)
+      Rails.logger.info '[AssistantListener] Skipping - conversation not verified'
+      return
+    end
 
+    Rails.logger.info '[AssistantListener] Triggering webhook for assignee_changed'
     method_name = __method__.to_s
     payload = conversation.webhook_data.merge(
       event: method_name,

@@ -1,7 +1,7 @@
 class Integrations::CitadelApi::Client
   include HTTParty
 
-  base_uri ENV.fetch('CITADEL_API_URL', 'http://localhost:8080')
+  base_uri ENV.fetch('CITADEL_API_URL', 'http://localhost:3333')
 
   def initialize
     @api_key = ENV.fetch('CITADEL_API_KEY')
@@ -9,7 +9,7 @@ class Integrations::CitadelApi::Client
 
   def fetch_community_groups
     response = self.class.get(
-      '/v1/sync/community-groups',
+      '/v1/chatwoot/community-groups',
       headers: auth_headers
     )
 
@@ -18,7 +18,7 @@ class Integrations::CitadelApi::Client
 
   def fetch_communities
     response = self.class.get(
-      '/v1/sync/communities',
+      '/v1/chatwoot/communities',
       headers: auth_headers
     )
 
