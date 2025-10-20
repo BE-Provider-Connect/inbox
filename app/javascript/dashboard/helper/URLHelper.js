@@ -75,6 +75,11 @@ export const getArticleSearchURL = ({
   categorySlug,
   sort,
   query,
+  privacy,
+  aiEnabled,
+  aiScope,
+  communityGroupIds,
+  communityIds,
 }) => {
   const queryParams = new URLSearchParams({});
 
@@ -86,6 +91,9 @@ export const getArticleSearchURL = ({
     category_slug: categorySlug,
     sort,
     query,
+    privacy,
+    ai_enabled: aiEnabled,
+    ai_scope: aiScope,
   };
 
   Object.entries(params).forEach(([key, value]) => {
@@ -93,6 +101,19 @@ export const getArticleSearchURL = ({
       queryParams.set(key, value);
     }
   });
+
+  // Handle array parameters following Rails convention
+  if (communityGroupIds && communityGroupIds.length > 0) {
+    communityGroupIds.forEach(id => {
+      queryParams.append('community_group_ids[]', id);
+    });
+  }
+
+  if (communityIds && communityIds.length > 0) {
+    communityIds.forEach(id => {
+      queryParams.append('community_ids[]', id);
+    });
+  }
 
   return `${host}/${portalSlug}/articles?${queryParams.toString()}`;
 };

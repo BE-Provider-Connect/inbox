@@ -37,9 +37,21 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  communityGroups: {
+    type: Array,
+    default: () => [],
+  },
+  communities: {
+    type: Array,
+    default: () => [],
+  },
+  currentAiFilter: {
+    type: Object,
+    default: () => ({}),
+  },
 });
 
-const emit = defineEmits(['pageChange', 'fetchPortal']);
+const emit = defineEmits(['pageChange', 'fetchPortal', 'aiFilterChange']);
 
 const router = useRouter();
 const route = useRoute();
@@ -64,8 +76,9 @@ const shouldShowPaginationFooter = computed(() => {
   return !(isFetching.value || isSwitchingPortal.value || hasNoArticles.value);
 });
 
-const updateRoute = newParams => {
+const updateRoute = (newParams, newQuery = {}) => {
   const { portalSlug, locale, tab, categorySlug } = route.params;
+  const currentQuery = route.query;
   router.push({
     name: 'portals_articles_index',
     params: {
@@ -74,6 +87,10 @@ const updateRoute = newParams => {
       tab: newParams.tab ?? tab,
       categorySlug: newParams.categorySlug ?? categorySlug,
       ...newParams,
+    },
+    query: {
+      ...currentQuery,
+      ...newQuery,
     },
   });
 };
@@ -115,17 +132,35 @@ const handleTabChange = tab =>
 const handleCategoryAction = value =>
   updateRoute({ categorySlug: value === CATEGORY_ALL ? '' : value });
 
+const handlePrivacyAction = value => {
+  const newQuery = { ...route.query };
+
+  if (value === 'all') {
+    // Remove privacy param when "Any visibility" is selected
+    delete newQuery.privacy;
+  } else {
+    // Set privacy param to the selected value
+    newQuery.privacy = value;
+  }
+
+  updateRoute({}, newQuery);
+};
+
 const handleLocaleAction = value => {
   updateRoute({ locale: value, categorySlug: '' });
   emit('fetchPortal', value);
 };
 const handlePageChange = page => emit('pageChange', page);
+const handleAiFilterChange = filter => emit('aiFilterChange', filter);
 
 const navigateToNewArticlePage = () => {
   const { categorySlug, locale } = route.params;
+  const { privacy } = route.query;
+
   router.push({
     name: 'portals_articles_new',
     params: { categorySlug, locale },
+    query: privacy ? { privacy } : {},
   });
 };
 </script>
@@ -146,9 +181,14 @@ const navigateToNewArticlePage = () => {
           :categories="categories"
           :allowed-locales="allowedLocales"
           :meta="meta"
+          :community-groups="communityGroups"
+          :communities="communities"
+          :current-ai-filter="currentAiFilter"
           @tab-change="handleTabChange"
           @locale-change="handleLocaleAction"
           @category-change="handleCategoryAction"
+          @privacy-change="handlePrivacyAction"
+          @ai-filter-change="handleAiFilterChange"
           @new-article="navigateToNewArticlePage"
         />
         <CategoryHeaderControls

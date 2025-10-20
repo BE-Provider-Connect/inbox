@@ -188,6 +188,7 @@ RSpec.describe 'Accounts API', type: :request do
         locale: 'en',
         domain: 'example.com',
         support_email: 'care@example.com',
+        external_id: 'org_123456',
         auto_resolve_after: 40,
         auto_resolve_message: 'Auto resolved',
         auto_resolve_ignore_waiting: false,
@@ -196,7 +197,7 @@ RSpec.describe 'Accounts API', type: :request do
         company_size: '1-10'
       }
 
-      it 'modifies an account' do
+      it 'modifies an account' do # rubocop:disable RSpec/MultipleExpectations
         put "/api/v1/accounts/#{account.id}",
             params: params,
             headers: admin.create_new_auth_token,
@@ -207,6 +208,7 @@ RSpec.describe 'Accounts API', type: :request do
         expect(account.reload.locale).to eq(params[:locale])
         expect(account.reload.domain).to eq(params[:domain])
         expect(account.reload.support_email).to eq(params[:support_email])
+        expect(account.reload.external_id).to eq(params[:external_id])
 
         %w[auto_resolve_after auto_resolve_message auto_resolve_ignore_waiting].each do |attribute|
           expect(account.reload.settings[attribute]).to eq(params[attribute.to_sym])

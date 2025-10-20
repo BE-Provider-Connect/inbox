@@ -25,18 +25,20 @@ module ChatwootApp
     @custom ||= root.join('custom').exist?
   end
 
+  def self.citadel?
+    @citadel ||= root.join('citadel').exist?
+  end
+
   def self.help_center_root
     ENV.fetch('HELPCENTER_URL', nil) || ENV.fetch('FRONTEND_URL', nil)
   end
 
   def self.extensions
-    if custom?
-      %w[enterprise custom]
-    elsif enterprise?
-      %w[enterprise]
-    else
-      %w[]
-    end
+    extensions = []
+    extensions << 'enterprise' if enterprise?
+    extensions << 'citadel' if citadel?
+    extensions << 'custom' if custom?
+    extensions
   end
 
   def self.advanced_search_allowed?

@@ -30,3 +30,5 @@ class SlackUploadsController < ApplicationController
     "#{base_url}/integrations/slack/#{params[:sender_type]}.png"
   end
 end
+
+SlackUploadsController.prepend_mod_with('SlackUploadsController')

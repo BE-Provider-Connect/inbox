@@ -23,7 +23,12 @@ const categories = useMapGetter('categories/allCategories');
 
 const categoryId = computed(() => categories.value[0]?.id || null);
 
-const article = ref({});
+// Citadel: Initialize article privacy from query parameter
+const defaultPrivacy = route.query.privacy === 'private';
+
+const article = ref({
+  private: defaultPrivacy,
+});
 const isUpdating = ref(false);
 const isSaved = ref(false);
 
@@ -35,9 +40,11 @@ const setCategoryId = newCategoryId => {
   selectedCategoryId.value = newCategoryId;
 };
 
-const createNewArticle = async ({ title, content }) => {
+const createNewArticle = async ({ title, content, private: isPrivate }) => {
   if (title) article.value.title = title;
   if (content) article.value.content = content;
+  // Citadel: Handle article privacy
+  if (isPrivate !== undefined) article.value.private = isPrivate;
 
   if (!article.value.title || !article.value.content) return;
 
@@ -51,6 +58,7 @@ const createNewArticle = async ({ title, content }) => {
       locale: locale,
       authorId: selectedAuthorId.value || currentUserId.value,
       categoryId: selectedCategoryId.value || categoryId.value,
+      private: article.value.private,
     });
 
     useTrack(PORTALS_EVENTS.CREATE_ARTICLE, { locale });
@@ -77,6 +85,7 @@ const goBackToArticles = () => {
   router.push({
     name: 'portals_articles_index',
     params: { tab, categorySlug, locale },
+    query: route.query,
   });
 };
 </script>

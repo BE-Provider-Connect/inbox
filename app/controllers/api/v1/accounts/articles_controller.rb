@@ -83,3 +83,5 @@ class Api::V1::Accounts::ArticlesController < Api::V1::Accounts::BaseController
     @current_page = params[:page] || 1
   end
 end
+
+Api::V1::Accounts::ArticlesController.prepend_mod_with('Api::V1::Accounts::ArticlesController')

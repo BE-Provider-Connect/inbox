@@ -162,7 +162,11 @@ const variant = computed(() => {
     return MESSAGE_VARIANTS.UNSUPPORTED;
 
   const isBot = !props.sender || props.sender.type === SENDER_TYPES.AGENT_BOT;
-  if (isBot && props.messageType === MESSAGE_TYPES.OUTGOING) {
+  // Citadel: Support assistant sender type
+  const isAssistant =
+    props.sender?.type === 'assistant' || props.senderType === 'Assistant';
+
+  if ((isBot || isAssistant) && props.messageType === MESSAGE_TYPES.OUTGOING) {
     return MESSAGE_VARIANTS.BOT;
   }
 
@@ -198,7 +202,8 @@ const isBotOrAgentMessage = computed(() => {
   if (
     [SENDER_TYPES.AGENT_BOT, SENDER_TYPES.CAPTAIN_ASSISTANT].includes(
       senderType
-    )
+    ) ||
+    senderType === 'Assistant' // Citadel: Include assistant type
   ) {
     return true;
   }

@@ -7,7 +7,19 @@ import types from '../../mutation-types';
 export const actions = {
   index: async (
     { commit },
-    { pageNumber, portalSlug, locale, status, authorId, categorySlug }
+    {
+      pageNumber,
+      portalSlug,
+      locale,
+      status,
+      authorId,
+      categorySlug,
+      privacy,
+      aiEnabled,
+      aiScope,
+      communityGroupIds,
+      communityIds,
+    }
   ) => {
     try {
       commit(types.SET_UI_FLAG, { isFetching: true });
@@ -18,6 +30,11 @@ export const actions = {
         status,
         authorId,
         categorySlug,
+        privacy,
+        aiEnabled,
+        aiScope,
+        communityGroupIds,
+        communityIds,
       });
       const payload = camelcaseKeys(data.payload);
       const meta = camelcaseKeys(data.meta);

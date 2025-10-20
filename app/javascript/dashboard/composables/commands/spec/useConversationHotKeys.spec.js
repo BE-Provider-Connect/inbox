@@ -100,6 +100,7 @@ describe('useConversationHotKeys', () => {
         expect(store.dispatch).toHaveBeenCalledWith('assignAgent', {
           conversationId: 1,
           agentId: 2,
+          assigneeType: 'User',
         });
       }
     }

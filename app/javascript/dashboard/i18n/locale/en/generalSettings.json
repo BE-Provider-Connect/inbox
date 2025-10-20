@@ -92,6 +92,11 @@
         "PLACEHOLDER": "Your company's support email",
         "ERROR": ""
       },
+      "EXTERNAL_ID": {
+        "LABEL": "External ID",
+        "PLACEHOLDER": "External organization ID",
+        "ERROR": ""
+      },
       "AUTO_RESOLVE_IGNORE_WAITING": {
         "LABEL": "Exclude unattended conversations",
         "HELP": "When enabled, the system will skip resolving conversations that are still waiting for an agent's reply."

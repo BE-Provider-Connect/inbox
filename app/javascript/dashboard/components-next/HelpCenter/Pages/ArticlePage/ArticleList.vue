@@ -44,6 +44,7 @@ const openArticle = id => {
     router.push({
       name: 'portals_categories_articles_edit',
       params: { articleSlug: id },
+      query: route.query,
     });
   } else {
     router.push({
@@ -54,6 +55,7 @@ const openArticle = id => {
         categorySlug,
         locale,
       },
+      query: route.query,
     });
   }
 };
@@ -183,6 +185,11 @@ watch(
           :category="getCategory(element.category.id)"
           :views="element.views || 0"
           :updated-at="element.updatedAt"
+          :is-private="element.private"
+          :ai-agent-enabled="element.aiAgentEnabled"
+          :ai-agent-scope="element.aiAgentScope"
+          :community-groups="element.communityGroups || []"
+          :communities="element.communities || []"
           :class="{ 'cursor-grab': dragEnabled }"
           @open-article="openArticle"
           @article-action="updateArticle"

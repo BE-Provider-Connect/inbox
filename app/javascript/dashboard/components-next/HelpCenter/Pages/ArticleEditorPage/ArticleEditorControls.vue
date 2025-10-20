@@ -4,16 +4,23 @@ import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 import { OnClickOutside } from '@vueuse/components';
 import { useMapGetter } from 'dashboard/composables/store';
+import { useAiAgentLabel } from 'dashboard/composables/useAiAgentLabel';
 
 import Button from 'dashboard/components-next/button/Button.vue';
 import Avatar from 'dashboard/components-next/avatar/Avatar.vue';
 import DropdownMenu from 'dashboard/components-next/dropdown-menu/DropdownMenu.vue';
 import ArticleEditorProperties from 'dashboard/components-next/HelpCenter/Pages/ArticleEditorPage/ArticleEditorProperties.vue';
+import AiAgentConfig from 'dashboard/components-next/HelpCenter/Pages/ArticleEditorPage/AiAgentConfig.vue';
+import CommunitiesAPI from 'dashboard/api/citadel/communities';
 
 const props = defineProps({
   article: {
     type: Object,
     default: () => ({}),
+  },
+  isUpdating: {
+    type: Boolean,
+    default: false,
   },
 });
 
@@ -25,8 +32,11 @@ const route = useRoute();
 const openAgentsList = ref(false);
 const openCategoryList = ref(false);
 const openProperties = ref(false);
+const openAiAgentConfig = ref(false);
 const selectedAuthorId = ref(null);
 const selectedCategoryId = ref(null);
+const communityGroups = ref([]);
+const communities = ref([]);
 
 const agents = useMapGetter('agents/getAgents');
 const categories = useMapGetter('categories/allCategories');
@@ -162,6 +172,37 @@ const updateMeta = meta => {
   emit('saveArticle', { meta });
 };
 
+const togglePrivacy = () => {
+  const newPrivateValue = !props.article?.private;
+  emit('saveArticle', { private: newPrivateValue });
+};
+
+const aiAgentConfig = computed(() => ({
+  enabled: props.article?.aiAgentEnabled,
+  scope: props.article?.aiAgentScope,
+  communityGroups: props.article?.communityGroups || [],
+  communities: props.article?.communities || [],
+}));
+
+const { label: aiAgentDisplayText } = useAiAgentLabel(aiAgentConfig);
+
+const fetchCommunityData = async () => {
+  try {
+    const [groupsResponse, communitiesResponse] = await Promise.all([
+      CommunitiesAPI.getCommunityGroups(),
+      CommunitiesAPI.getCommunities(),
+    ]);
+    communityGroups.value = groupsResponse.data || [];
+    communities.value = communitiesResponse.data || [];
+  } catch (error) {
+    // Silently fail - user won't be able to select entities but can still use organization scope
+  }
+};
+
+const updateAiAgentConfig = config => {
+  emit('saveArticle', config);
+};
+
 onMounted(() => {
   if (categorySlugFromRoute.value && isNewArticle.value) {
     // Assign category from slug if there is one
@@ -173,6 +214,9 @@ onMounted(() => {
       });
     }
   }
+
+  // Fetch community data for AI Agent configuration
+  fetchCommunityData();
 });
 </script>
 
@@ -235,6 +279,49 @@ onMounted(() => {
           show-search
           class="w-48 mt-2 z-[100] overflow-y-auto left-0 top-full max-h-60"
           @action="handleArticleAction"
+        />
+      </OnClickOutside>
+    </div>
+
+    <!-- Privacy Toggle -->
+    <div class="flex items-center">
+      <Button
+        :icon="article?.private ? 'i-lucide-lock' : 'i-lucide-globe'"
+        :label="
+          article?.private
+            ? t('HELP_CENTER.ARTICLE.PRIVATE')
+            : t('HELP_CENTER.ARTICLE.PUBLIC')
+        "
+        variant="ghost"
+        color="slate"
+        class="!px-2 font-normal hover:!bg-transparent hover:!text-n-slate-11"
+        @click="togglePrivacy"
+      />
+    </div>
+
+    <div class="w-px h-3 bg-n-weak" />
+
+    <!-- AI Agent Configuration -->
+    <div class="relative">
+      <OnClickOutside @trigger="openAiAgentConfig = false">
+        <Button
+          :label="aiAgentDisplayText"
+          icon="i-lucide-brain-circuit"
+          variant="ghost"
+          color="slate"
+          :disabled="isNewArticle"
+          class="!px-2 font-normal hover:!bg-transparent hover:!text-n-slate-11"
+          @click="openAiAgentConfig = !openAiAgentConfig"
+        />
+        <AiAgentConfig
+          v-if="openAiAgentConfig"
+          :article="article"
+          :community-groups="communityGroups"
+          :communities="communities"
+          :is-saving="isUpdating"
+          class="right-0 z-[100] mt-2 xl:left-0 top-full"
+          @save-article="updateAiAgentConfig"
+          @close="openAiAgentConfig = false"
         />
       </OnClickOutside>
     </div>

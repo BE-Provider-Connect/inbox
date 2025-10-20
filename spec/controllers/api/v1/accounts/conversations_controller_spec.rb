@@ -676,7 +676,7 @@ RSpec.describe 'Conversations API', type: :request do
       end
 
       it 'updates assignee last seen' do
-        conversation.update!(assignee_id: agent.id)
+        conversation.update!(assignee: agent)
 
         expect(conversation.reload.assignee_last_seen_at).to be_nil
 

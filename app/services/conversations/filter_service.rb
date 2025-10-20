@@ -50,3 +50,5 @@ class Conversations::FilterService < FilterService
     @conversations.sort_on_last_activity_at.page(current_page)
   end
 end
+
+Conversations::FilterService.prepend Citadel::Conversations::FilterService if defined?(Citadel::Conversations::FilterService)

@@ -177,9 +177,13 @@ export function useConversationHotKeys() {
   });
 
   const onChangeAssignee = action => {
+    const agentId = action.agentInfo.id;
+    const assigneeType =
+      action.agentInfo?.type === 'assistant' ? 'Assistant' : 'User';
     store.dispatch('assignAgent', {
       conversationId: currentChat.value.id,
-      agentId: action.agentInfo.id,
+      agentId,
+      assigneeType,
     });
   };
 
