@@ -3,6 +3,7 @@
 require 'csv'
 require 'open-uri'
 
+# rubocop:disable Rails/Output
 class ArticlesImportService
   REQUIRED_HEADERS = %w[title content].freeze
   OPTIONAL_HEADERS = %w[description status category slug author_email].freeze
@@ -75,7 +76,9 @@ class ArticlesImportService
   def fetch_csv_content
     puts "Fetching CSV from: #{sheet_url}"
 
+    # rubocop:disable Security/Open
     URI.open(sheet_url, read_timeout: 30).read
+    # rubocop:enable Security/Open
   rescue OpenURI::HTTPError => e
     raise StandardError, "Failed to fetch CSV: #{e.message}. Make sure the Google Sheet is published to web."
   rescue Net::ReadTimeout
@@ -139,7 +142,7 @@ class ArticlesImportService
       description: row['description'].presence || row['title'],
       slug: row['slug'].presence || generate_slug(row['title']),
       status: normalize_status(row['status']),
-      position: row['position'].presence&.to_i || 0
+      position: row['position'].presence ? row['position'].to_i : 0
     }.compact
   end
 
@@ -159,7 +162,7 @@ class ArticlesImportService
   def find_author(account, author_email)
     return account.users.first if author_email.blank?
 
-    account.users.find_by(email: author_email) || account.users.first
+    account.users.from_email(author_email) || account.users.first
   end
 
   def generate_slug(text)
@@ -180,7 +183,7 @@ class ArticlesImportService
   end
 
   def print_summary
-    puts "\n" + ('=' * 60)
+    puts "\n#{'=' * 60}"
     puts 'IMPORT SUMMARY'
     puts '=' * 60
     puts "✅ Successfully imported: #{imported_count} articles"
@@ -200,3 +203,4 @@ class ArticlesImportService
     { success: false, imported_count: 0, errors: [error.message] }
   end
 end
+# rubocop:enable Rails/Output

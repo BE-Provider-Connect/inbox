@@ -3,6 +3,8 @@
 require 'rails_helper'
 require 'rake'
 
+# Rake task specs don't have a class to describe
+# rubocop:disable RSpec/DescribeClass
 RSpec.describe 'articles:import rake task' do
   let(:account) { create(:account) }
   let(:sheet_url) { 'https://docs.google.com/spreadsheets/d/test/pub?output=csv' }
@@ -75,7 +77,9 @@ RSpec.describe 'articles:import rake task' do
 
       before do
         user # Ensure user is created
+        # rubocop:disable RSpec/AnyInstance
         allow_any_instance_of(ArticlesImportService).to receive(:fetch_csv_content).and_return(csv_content)
+        # rubocop:enable RSpec/AnyInstance
       end
 
       it 'successfully imports articles' do
@@ -91,7 +95,7 @@ RSpec.describe 'articles:import rake task' do
       end
     end
 
-    context 'error handling' do
+    context 'when handling errors' do
       it 'handles missing sheet_url gracefully' do
         expect { task.invoke(nil, account.id.to_s) }.to output(/Sheet URL is required/).to_stdout
       end
@@ -110,3 +114,4 @@ RSpec.describe 'articles:import rake task' do
     end
   end
 end
+# rubocop:enable RSpec/DescribeClass

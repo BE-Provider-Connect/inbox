@@ -311,7 +311,9 @@ RSpec.describe ArticlesImportService do
     end
 
     it 'calls ArticlesImportService with correct parameters' do
-      expect_any_instance_of(ArticlesImportService).to receive(:perform)
+      service_instance = instance_double(described_class)
+      allow(described_class).to receive(:new).and_return(service_instance)
+      expect(service_instance).to receive(:perform)
 
       Rake::Task['articles:import'].invoke(sheet_url, account.id.to_s)
     end
