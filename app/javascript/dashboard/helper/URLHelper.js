@@ -75,6 +75,11 @@ export const getArticleSearchURL = ({
   categorySlug,
   sort,
   query,
+  privacy,
+  aiEnabled,
+  aiScope,
+  communityGroupIds,
+  communityIds,
 }) => {
   const queryParams = new URLSearchParams({});
 
@@ -86,6 +91,9 @@ export const getArticleSearchURL = ({
     category_slug: categorySlug,
     sort,
     query,
+    privacy,
+    ai_enabled: aiEnabled,
+    ai_scope: aiScope,
   };
 
   Object.entries(params).forEach(([key, value]) => {
@@ -93,6 +101,19 @@ export const getArticleSearchURL = ({
       queryParams.set(key, value);
     }
   });
+
+  // Handle array parameters following Rails convention
+  if (communityGroupIds && communityGroupIds.length > 0) {
+    communityGroupIds.forEach(id => {
+      queryParams.append('community_group_ids[]', id);
+    });
+  }
+
+  if (communityIds && communityIds.length > 0) {
+    communityIds.forEach(id => {
+      queryParams.append('community_ids[]', id);
+    });
+  }
 
   return `${host}/${portalSlug}/articles?${queryParams.toString()}`;
 };
@@ -144,4 +165,35 @@ export const extractFilenameFromUrl = url => {
     const match = url.match(/\/([^/?#]+)(?:[?#]|$)/);
     return match ? match[1] : url;
   }
+};
+
+/**
+ * Normalizes a comma/newline separated list of domains
+ * @param {string} domains - The comma/newline separated list of domains
+ * @returns {string} - The normalized list of domains
+ * - Converts newlines to commas
+ * - Trims whitespace
+ * - Lowercases entries
+ * - Removes empty values
+ * - De-duplicates while preserving original order
+ */
+export const sanitizeAllowedDomains = domains => {
+  if (!domains) return '';
+
+  const tokens = domains
+    .replace(/\r\n/g, '\n')
+    .replace(/\s*\n\s*/g, ',')
+    .split(',')
+    .map(d => d.trim().toLowerCase())
+    .filter(d => d.length > 0);
+
+  // De-duplicate while preserving order using Set and filter index
+  const seen = new Set();
+  const unique = tokens.filter(d => {
+    if (seen.has(d)) return false;
+    seen.add(d);
+    return true;
+  });
+
+  return unique.join(',');
 };

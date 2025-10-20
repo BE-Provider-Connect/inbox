@@ -1,4 +1,5 @@
 <script>
+import { computed } from 'vue';
 import Spinner from 'shared/components/Spinner.vue';
 import { useAlert } from 'dashboard/composables';
 import { mapGetters } from 'vuex';
@@ -23,8 +24,12 @@ export default {
   },
   setup() {
     const { agentsList } = useAgentsList(false);
+    // Filter out non-users (e.g., Assistants) since participants can only be users
+    const usersList = computed(() => {
+      return agentsList.value.filter(agent => agent.type !== 'assistant');
+    });
     return {
-      agentsList,
+      agentsList: usersList,
     };
   },
   data() {

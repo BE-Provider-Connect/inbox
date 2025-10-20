@@ -53,3 +53,5 @@ module AssignmentHandler
     assignee_id.present? && Current.user&.id == assignee_id
   end
 end
+
+AssignmentHandler.prepend_mod_with('AssignmentHandler')

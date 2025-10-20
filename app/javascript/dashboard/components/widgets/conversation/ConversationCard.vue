@@ -305,7 +305,16 @@ const deleteConversation = () => {
             v-if="showAssignee && assignee.name"
             class="text-n-slate-11 text-xs font-medium leading-3 py-0.5 px-0 inline-flex items-center truncate"
           >
-            <fluent-icon icon="person" size="12" class="text-n-slate-11" />
+            <!-- Citadel: Show bot icon for assistant assignees -->
+            <fluent-icon
+              :icon="assignee.type === 'assistant' ? 'bot' : 'person'"
+              size="12"
+              :class="
+                assignee.type === 'assistant'
+                  ? 'text-purple-500'
+                  : 'text-n-slate-11'
+              "
+            />
             {{ assignee.name }}
           </span>
           <PriorityMark :priority="chat.priority" class="flex-shrink-0" />

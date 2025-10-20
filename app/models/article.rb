@@ -193,3 +193,5 @@ class Article < ApplicationRecord
   end
 end
 Article.include_mod_with('Concerns::Article')
+Article.include_mod_with('Article')
+Article.singleton_class.prepend_mod_with('Article::Search')

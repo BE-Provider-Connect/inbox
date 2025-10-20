@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_09_16_024703) do
+ActiveRecord::Schema[7.1].define(version: 2025_10_10_090257) do
   # These extensions should be enabled to support this database
   enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
@@ -73,6 +73,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_09_16_024703) do
     t.integer "status", default: 0
     t.jsonb "internal_attributes", default: {}, null: false
     t.jsonb "settings", default: {}
+    t.string "external_id"
+    t.index ["external_id"], name: "index_accounts_on_external_id", unique: true
     t.index ["status"], name: "index_accounts_on_status"
   end
 
@@ -157,6 +159,26 @@ ActiveRecord::Schema[7.1].define(version: 2025_09_16_024703) do
     t.index ["sla_policy_id"], name: "index_applied_slas_on_sla_policy_id"
   end
 
+  create_table "article_communities", force: :cascade do |t|
+    t.bigint "article_id", null: false
+    t.bigint "community_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["article_id", "community_id"], name: "idx_article_communities_unique", unique: true
+    t.index ["article_id"], name: "index_article_communities_on_article_id"
+    t.index ["community_id"], name: "index_article_communities_on_community_id"
+  end
+
+  create_table "article_community_groups", force: :cascade do |t|
+    t.bigint "article_id", null: false
+    t.bigint "community_group_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["article_id", "community_group_id"], name: "idx_article_community_groups_unique", unique: true
+    t.index ["article_id"], name: "index_article_community_groups_on_article_id"
+    t.index ["community_group_id"], name: "index_article_community_groups_on_community_group_id"
+  end
+
   create_table "article_embeddings", force: :cascade do |t|
     t.bigint "article_id", null: false
     t.text "term", null: false
@@ -184,10 +206,17 @@ ActiveRecord::Schema[7.1].define(version: 2025_09_16_024703) do
     t.string "slug", null: false
     t.integer "position"
     t.string "locale", default: "en", null: false
+    t.boolean "private", default: false, null: false
+    t.boolean "ai_agent_enabled", default: false, null: false
+    t.integer "ai_agent_scope"
     t.index ["account_id"], name: "index_articles_on_account_id"
+    t.index ["ai_agent_enabled", "ai_agent_scope"], name: "index_articles_on_ai_agent_enabled_and_ai_agent_scope"
+    t.index ["ai_agent_enabled"], name: "index_articles_on_ai_agent_enabled"
+    t.index ["ai_agent_scope"], name: "index_articles_on_ai_agent_scope"
     t.index ["associated_article_id"], name: "index_articles_on_associated_article_id"
     t.index ["author_id"], name: "index_articles_on_author_id"
     t.index ["portal_id"], name: "index_articles_on_portal_id"
+    t.index ["private"], name: "index_articles_on_private"
     t.index ["slug"], name: "index_articles_on_slug", unique: true
     t.index ["status"], name: "index_articles_on_status"
     t.index ["views"], name: "index_articles_on_views"
@@ -207,6 +236,15 @@ ActiveRecord::Schema[7.1].define(version: 2025_09_16_024703) do
     t.index ["account_id", "name"], name: "index_assignment_policies_on_account_id_and_name", unique: true
     t.index ["account_id"], name: "index_assignment_policies_on_account_id"
     t.index ["enabled"], name: "index_assignment_policies_on_enabled"
+  end
+
+  create_table "assistants", force: :cascade do |t|
+    t.string "name", null: false
+    t.jsonb "settings", default: {}
+    t.boolean "enabled", default: true
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_assistants_on_name", unique: true
   end
 
   create_table "attachments", id: :serial, force: :cascade do |t|
@@ -422,6 +460,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_09_16_024703) do
     t.boolean "smtp_enable_ssl_tls", default: false
     t.jsonb "provider_config", default: {}
     t.string "provider"
+    t.boolean "verified_for_sending", default: false, null: false
     t.index ["email"], name: "index_channel_email_on_email", unique: true
     t.index ["forward_to_email"], name: "index_channel_email_on_forward_to_email", unique: true
   end
@@ -550,6 +589,32 @@ ActiveRecord::Schema[7.1].define(version: 2025_09_16_024703) do
     t.index ["phone_number"], name: "index_channel_whatsapp_on_phone_number", unique: true
   end
 
+  create_table "communities", force: :cascade do |t|
+    t.string "external_id", null: false
+    t.string "name", null: false
+    t.bigint "community_group_id"
+    t.datetime "synced_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "account_id"
+    t.index ["account_id"], name: "index_communities_on_account_id"
+    t.index ["community_group_id"], name: "index_communities_on_community_group_id"
+    t.index ["external_id", "account_id"], name: "index_communities_on_external_id_and_account_id", unique: true
+    t.index ["external_id"], name: "index_communities_on_external_id", unique: true
+  end
+
+  create_table "community_groups", force: :cascade do |t|
+    t.string "external_id", null: false
+    t.string "name", null: false
+    t.datetime "synced_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "account_id"
+    t.index ["account_id"], name: "index_community_groups_on_account_id"
+    t.index ["external_id", "account_id"], name: "index_community_groups_on_external_id_and_account_id", unique: true
+    t.index ["external_id"], name: "index_community_groups_on_external_id", unique: true
+  end
+
   create_table "contact_inboxes", force: :cascade do |t|
     t.bigint "contact_id"
     t.bigint "inbox_id"
@@ -633,11 +698,13 @@ ActiveRecord::Schema[7.1].define(version: 2025_09_16_024703) do
     t.bigint "sla_policy_id"
     t.datetime "waiting_since"
     t.text "cached_label_list"
+    t.string "assignee_type"
     t.index ["account_id", "display_id"], name: "index_conversations_on_account_id_and_display_id", unique: true
     t.index ["account_id", "id"], name: "index_conversations_on_id_and_account_id"
     t.index ["account_id", "inbox_id", "status", "assignee_id"], name: "conv_acid_inbid_stat_asgnid_idx"
     t.index ["account_id"], name: "index_conversations_on_account_id"
     t.index ["assignee_id", "account_id"], name: "index_conversations_on_assignee_id_and_account_id"
+    t.index ["assignee_type", "assignee_id"], name: "index_conversations_on_assignee_type_and_assignee_id"
     t.index ["campaign_id"], name: "index_conversations_on_campaign_id"
     t.index ["contact_id"], name: "index_conversations_on_contact_id"
     t.index ["contact_inbox_id"], name: "index_conversations_on_contact_inbox_id"
@@ -1216,6 +1283,13 @@ ActiveRecord::Schema[7.1].define(version: 2025_09_16_024703) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "article_communities", "articles"
+  add_foreign_key "article_communities", "communities"
+  add_foreign_key "article_community_groups", "articles"
+  add_foreign_key "article_community_groups", "community_groups"
+  add_foreign_key "communities", "accounts"
+  add_foreign_key "communities", "community_groups"
+  add_foreign_key "community_groups", "accounts"
   add_foreign_key "inboxes", "portals"
   create_trigger("accounts_after_insert_row_tr", :generated => true, :compatibility => 1).
       on("accounts").

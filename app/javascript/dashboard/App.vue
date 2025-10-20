@@ -10,7 +10,7 @@ import vueActionCable from './helper/actionCable';
 import { useRouter } from 'vue-router';
 import { useStore } from 'dashboard/composables/store';
 import WootSnackbarBox from './components/SnackbarContainer.vue';
-import { setColorTheme } from './helper/themeHelper';
+import { setColorTheme, setBrandColor } from './helper/themeHelper';
 import { isOnOnboardingView } from 'v3/helpers/RouteHelper';
 import { useAccount } from 'dashboard/composables/useAccount';
 import { useFontSize } from 'dashboard/composables/useFontSize';
@@ -90,6 +90,7 @@ export default {
   },
   mounted() {
     this.initializeColorTheme();
+    setBrandColor(this.$store.getters['globalConfig/get'].brandPrimaryColor);
     this.listenToThemeChanges();
     // If user locale is set, use it; otherwise use account locale
     this.setLocale(

@@ -8,6 +8,7 @@ import {
   ARTICLE_MENU_OPTIONS,
   ARTICLE_STATUSES,
 } from 'dashboard/helper/portalHelper';
+import { useAiAgentLabel } from 'dashboard/composables/useAiAgentLabel';
 
 import Icon from 'dashboard/components-next/icon/Icon.vue';
 import CardLayout from 'dashboard/components-next/CardLayout.vue';
@@ -43,6 +44,26 @@ const props = defineProps({
   updatedAt: {
     type: Number,
     required: true,
+  },
+  isPrivate: {
+    type: Boolean,
+    default: false,
+  },
+  aiAgentEnabled: {
+    type: Boolean,
+    default: false,
+  },
+  aiAgentScope: {
+    type: String,
+    default: '',
+  },
+  communityGroups: {
+    type: Array,
+    default: () => [],
+  },
+  communities: {
+    type: Array,
+    default: () => [],
   },
 });
 
@@ -112,6 +133,15 @@ const lastUpdatedAt = computed(() => {
   return dynamicTime(props.updatedAt);
 });
 
+const aiAgentConfig = computed(() => ({
+  enabled: props.aiAgentEnabled,
+  scope: props.aiAgentScope,
+  communityGroups: props.communityGroups,
+  communities: props.communities,
+}));
+
+const { label: aiAgentLabel } = useAiAgentLabel(aiAgentConfig);
+
 const handleArticleAction = ({ action, value }) => {
   toggleDropdown(false);
   emit('articleAction', { action, value, id: props.id });
@@ -174,6 +204,32 @@ const handleClick = id => {
         <span class="block text-sm whitespace-nowrap text-n-slate-11">
           {{ categoryName }}
         </span>
+        <div
+          class="inline-flex items-center gap-1 text-n-slate-11 whitespace-nowrap"
+        >
+          <Icon
+            :icon="isPrivate ? 'i-lucide-lock' : 'i-lucide-globe'"
+            class="size-4"
+          />
+          <span class="text-sm">
+            {{
+              isPrivate
+                ? $t('HELP_CENTER.ARTICLE.PRIVATE')
+                : $t('HELP_CENTER.ARTICLE.PUBLIC')
+            }}
+          </span>
+        </div>
+        <div
+          class="inline-flex items-center gap-1 text-n-slate-11 whitespace-nowrap"
+        >
+          <Icon
+            :icon="aiAgentEnabled ? 'i-lucide-bot' : 'i-lucide-bot-off'"
+            class="size-4"
+          />
+          <span class="text-sm">
+            {{ aiAgentLabel }}
+          </span>
+        </div>
         <div
           class="inline-flex items-center gap-1 text-n-slate-11 whitespace-nowrap"
         >

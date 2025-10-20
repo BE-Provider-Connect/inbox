@@ -193,6 +193,7 @@ Rails.application.routes.draw do
             post :set_agent_bot, on: :member
             delete :avatar, on: :member
             post :sync_templates, on: :member
+            get :health, on: :member
           end
           resources :inbox_members, only: [:create, :show], param: :inbox_id do
             collection do
@@ -315,6 +316,11 @@ Rails.application.routes.draw do
             end
           end
 
+          if ChatwootApp.citadel?
+            resources :community_groups, only: [:index, :show]
+            resources :communities, only: [:index, :show]
+          end
+
           resources :upload, only: [:create]
         end
       end
@@ -324,6 +330,30 @@ Rails.application.routes.draw do
       namespace :integrations do
         resources :webhooks, only: [:create]
       end
+
+      if ChatwootApp.citadel?
+        # API endpoints for external service integration (Citadel API)
+        namespace :citadel do
+          resources :articles, only: [:index, :show]
+          resources :accounts, only: [] do
+            scope module: :accounts do
+              resources :conversations, only: [:show] do
+                scope module: :conversations do
+                  resources :messages, only: [:index, :create]
+                  resources :labels, only: [:create]
+                  resource :assignments, only: [:create]
+                end
+                member do
+                  post :toggle_status
+                end
+              end
+            end
+          end
+        end
+      end
+
+      # Frontend API endpoint to trigger SAML authentication flow
+      post 'auth/saml_login', to: 'auth#saml_login'
 
       resource :profile, only: [:show, :update] do
         delete :avatar, on: :collection

@@ -33,7 +33,8 @@ RSpec.describe 'Assignable Agents API', type: :request do
 
           expect(response).to have_http_status(:success)
           response_data = JSON.parse(response.body, symbolize_names: true)[:payload]
-          expect(response_data.size).to eq(2)
+          # Includes agent, administrator, and Assistant
+          expect(response_data.size).to eq(3)
           expect(response_data.pluck(:role)).to include('agent', 'administrator')
         end
       end
@@ -59,7 +60,8 @@ RSpec.describe 'Assignable Agents API', type: :request do
 
         expect(response).to have_http_status(:success)
         response_data = JSON.parse(response.body, symbolize_names: true)[:payload]
-        expect(response_data.size).to eq(2)
+        # Includes agent, administrator, and Assistant
+        expect(response_data.size).to eq(3)
         expect(response_data.pluck(:role)).to include('agent', 'administrator')
       end
     end

@@ -85,11 +85,13 @@ export default {
       },
       set(agent) {
         const agentId = agent ? agent.id : 0;
+        const assigneeType = agent?.type === 'assistant' ? 'Assistant' : 'User';
         this.$store.dispatch('setCurrentChatAssignee', agent);
         this.$store
           .dispatch('assignAgent', {
             conversationId: this.currentChat.id,
             agentId,
+            assigneeType,
           })
           .then(() => {
             useAlert(this.$t('CONVERSATION.CHANGE_AGENT'));
