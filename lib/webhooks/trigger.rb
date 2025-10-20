@@ -74,3 +74,5 @@ class Webhooks::Trigger
     @payload[:id]
   end
 end
+
+Webhooks::Trigger.prepend_mod_with('Webhooks::Trigger')

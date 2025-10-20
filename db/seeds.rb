@@ -18,7 +18,8 @@ unless Rails.env.production?
   GlobalConfig.clear_cache
 
   account = Account.create!(
-    name: 'Acme Inc'
+    name: 'Sunset Properties',
+    external_id: 'd1f5ab6f-7cb0-4f16-bb41-bb2412c5f7c3'
   )
 
   secondary_account = Account.create!(
@@ -95,6 +96,9 @@ unless Rails.env.production?
 
   CannedResponse.create!(account: account, short_code: 'start', content: 'Hello welcome to chatwoot.')
 
-  # Community groups and communities
-  Seeders::CommunitySeeder.seed_community_groups_and_communities
+  # Community groups and communities are synced from Citadel API
+  # Run: rake community:sync
+
+  # Articles - these will be synced to Citadel API
+  Seeders::ArticleSeeder.seed_articles
 end

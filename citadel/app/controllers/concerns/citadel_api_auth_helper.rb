@@ -1,6 +1,6 @@
 module CitadelApiAuthHelper
   def authenticate_citadel_api!
-    api_key = request.headers['citadel_api_key']
+    api_key = request.headers['HTTP_CITADEL_API_KEY'] || request.headers['citadel_api_key']
 
     return render_unauthorized('Missing Citadel API key') if api_key.blank?
 

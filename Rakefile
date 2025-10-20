@@ -6,4 +6,7 @@ require_relative 'config/application'
 enterprise_tasks_path = Rails.root.join('enterprise/tasks_railtie.rb').to_s
 require enterprise_tasks_path if File.exist?(enterprise_tasks_path)
 
+# Load Citadel fork rake tasks
+Dir[Rails.root.join('citadel/lib/tasks/**/*.rake')].each { |f| load f }
+
 Rails.application.load_tasks
