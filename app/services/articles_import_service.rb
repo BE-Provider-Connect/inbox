@@ -91,18 +91,32 @@ class ArticlesImportService
     validate_csv_headers!(csv.headers)
 
     csv.each_with_index do |row, index|
-      import_single_article(row, account, portal, index + 2) # +2 for header row and 0-based index
+      # Normalize headers to lowercase for case-insensitive access
+      normalized_row = normalize_row_headers(row)
+      import_single_article(normalized_row, account, portal, index + 2) # +2 for header row and 0-based index
     end
   end
 
   def validate_csv_headers!(headers)
     return if headers.nil?
 
-    missing_headers = REQUIRED_HEADERS - headers.map(&:downcase)
+    # Normalize to lowercase for case-insensitive comparison
+    normalized_headers = headers.map { |h| h&.downcase&.strip }.compact
+    missing_headers = REQUIRED_HEADERS - normalized_headers
 
     return if missing_headers.empty?
 
     raise ArgumentError, "Missing required headers: #{missing_headers.join(', ')}"
+  end
+
+  def normalize_row_headers(row)
+    # Convert CSV::Row to hash with lowercase keys
+    normalized_hash = {}
+    row.headers.each do |header|
+      normalized_key = header&.downcase&.strip
+      normalized_hash[normalized_key] = row[header] if normalized_key
+    end
+    normalized_hash
   end
 
   def import_single_article(row, account, portal, row_number)
