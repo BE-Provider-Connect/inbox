@@ -2,8 +2,8 @@
 
 module Seeders::ArticleSeeder
   def self.seed_articles
-    account = Account.find_by!(name: 'Acme Inc')
     user = User.find_by!(email: 'john@acme.inc')
+    account = user.accounts.first!
 
     # Use existing portal from seed
     portal = Portal.find_by!(slug: 'test-portal', account: account)
