@@ -18,7 +18,7 @@
     "story:build": "histoire build",
     "story:preview": "histoire preview",
     "sync:i18n": "bin/sync_i18n_file_change",
-    "heroku-postbuild": "NODE_OPTIONS='--max-old-space-size=2048' pnpm run build:sdk"
+    "heroku-postbuild": "NODE_OPTIONS='--max-old-space-size=4096' pnpm run build:sdk"
   },
   "size-limit": [
     {
