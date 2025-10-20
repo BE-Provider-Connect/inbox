@@ -13,12 +13,12 @@
     "dev": "overmind start -f ./Procfile.dev",
     "ruby:prettier": "bundle exec rubocop -a",
     "build:sdk": "BUILD_MODE=library vite build",
-    "prepare": "husky install",
     "size": "size-limit",
     "story:dev": "histoire dev",
     "story:build": "histoire build",
     "story:preview": "histoire preview",
-    "sync:i18n": "bin/sync_i18n_file_change"
+    "sync:i18n": "bin/sync_i18n_file_change",
+    "heroku-postbuild": "NODE_OPTIONS='--max-old-space-size=4096' pnpm run build:sdk"
   },
   "size-limit": [
     {

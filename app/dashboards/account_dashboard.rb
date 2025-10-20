@@ -27,6 +27,7 @@ class AccountDashboard < Administrate::BaseDashboard
   ATTRIBUTE_TYPES = {
     id: Field::Number.with_options(searchable: true),
     name: Field::String.with_options(searchable: true),
+    external_id: Field::String.with_options(searchable: true),
     created_at: Field::DateTime,
     updated_at: Field::DateTime,
     users: CountField,
@@ -45,6 +46,7 @@ class AccountDashboard < Administrate::BaseDashboard
   COLLECTION_ATTRIBUTES = %i[
     id
     name
+    external_id
     locale
     users
     conversations
@@ -64,6 +66,7 @@ class AccountDashboard < Administrate::BaseDashboard
   SHOW_PAGE_ATTRIBUTES = (%i[
     id
     name
+    external_id
     created_at
     updated_at
     locale
@@ -85,6 +88,7 @@ class AccountDashboard < Administrate::BaseDashboard
                                end
   FORM_ATTRIBUTES = (%i[
     name
+    external_id
     locale
     status
   ] + enterprise_form_attributes).freeze
