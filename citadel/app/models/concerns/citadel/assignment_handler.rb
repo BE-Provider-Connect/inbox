@@ -10,7 +10,6 @@ module Citadel::AssignmentHandler
       ASSIGNEE_CHANGED => -> { saved_change_to_assignee_id? || saved_change_to_assignee_type? },
       TEAM_CHANGED => -> { saved_change_to_team_id? }
     }.each do |event, condition|
-      puts "dispatching event: #{event}, condition: #{condition.call}"
       dispatcher_dispatch(event, previous_changes) if condition.call
     end
   end

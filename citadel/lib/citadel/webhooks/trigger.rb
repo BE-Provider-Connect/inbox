@@ -41,7 +41,7 @@ module Citadel
       end
 
       def should_handle_error?
-        @webhook_type == :api_inbox_webhook && SUPPORTED_ERROR_HANDLE_EVENTS.include?(@payload[:event])
+        @webhook_type == :api_inbox_webhook && ::Webhooks::Trigger::SUPPORTED_ERROR_HANDLE_EVENTS.include?(@payload[:event])
       end
     end
   end
