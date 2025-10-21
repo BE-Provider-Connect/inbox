@@ -96,6 +96,23 @@ unless Rails.env.production?
 
   CannedResponse.create!(account: account, short_code: 'start', content: 'Hello welcome to chatwoot.')
 
+  # Create Portal for help center
+  portal = Portal.create!(
+    account: account,
+    name: 'Test Portal',
+    slug: 'test-portal',
+    config: { 'allowed_locales' => ['en'], 'default_locale' => 'en' }
+  )
+
+  # Create Category for articles
+  Category.create!(
+    portal: portal,
+    account: account,
+    name: 'Test Category',
+    slug: 'test-category',
+    locale: 'en'
+  )
+
   # Community groups and communities are synced from Citadel API
   # Run: rake community:sync
 
