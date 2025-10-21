@@ -306,8 +306,10 @@ RSpec.describe ArticlesImportService do
 
   describe 'rake task integration' do
     before do
+      # Clear the task if it already exists to avoid duplicate actions
+      Rake::Task['articles:import'].clear if Rake::Task.task_defined?('articles:import')
       Rails.application.load_tasks
-      Rake::Task['articles:import'].reenable if Rake::Task.task_defined?('articles:import')
+      Rake::Task['articles:import'].reenable
     end
 
     it 'calls ArticlesImportService with correct parameters' do
