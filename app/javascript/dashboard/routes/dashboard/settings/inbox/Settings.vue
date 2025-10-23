@@ -23,7 +23,8 @@ import CollaboratorsPage from './settingsPage/CollaboratorsPage.vue';
 import WidgetBuilder from './WidgetBuilder.vue';
 import BotConfiguration from './components/BotConfiguration.vue';
 import AccountHealth from './components/AccountHealth.vue';
-import { FEATURE_FLAGS } from '../../../../featureFlags';
+// Citadel: Commented out - unused since Bot Configuration is hidden
+// import { FEATURE_FLAGS } from '../../../../featureFlags';
 import SenderNameExamplePreview from './components/SenderNameExamplePreview.vue';
 import NextButton from 'dashboard/components-next/button/Button.vue';
 import { INBOX_TYPES } from 'dashboard/helper/inbox';
@@ -89,8 +90,9 @@ export default {
   },
   computed: {
     ...mapGetters({
-      accountId: 'getCurrentAccountId',
-      isFeatureEnabledonAccount: 'accounts/isFeatureEnabledonAccount',
+      // Citadel: Commented out - unused since Bot Configuration is hidden
+      // accountId: 'getCurrentAccountId',
+      // isFeatureEnabledonAccount: 'accounts/isFeatureEnabledonAccount',
       uiFlags: 'inboxes/getUIFlags',
       portals: 'portals/allPortals',
     }),
@@ -170,17 +172,18 @@ export default {
         ];
       }
 
-      if (
-        this.isFeatureEnabledonAccount(this.accountId, FEATURE_FLAGS.AGENT_BOTS)
-      ) {
-        visibleToAllChannelTabs = [
-          ...visibleToAllChannelTabs,
-          {
-            key: 'botConfiguration',
-            name: this.$t('INBOX_MGMT.TABS.BOT_CONFIGURATION'),
-          },
-        ];
-      }
+      // Citadel: Hide Bot Configuration tab
+      // if (
+      //   this.isFeatureEnabledonAccount(this.accountId, FEATURE_FLAGS.AGENT_BOTS)
+      // ) {
+      //   visibleToAllChannelTabs = [
+      //     ...visibleToAllChannelTabs,
+      //     {
+      //       key: 'botConfiguration',
+      //       name: this.$t('INBOX_MGMT.TABS.BOT_CONFIGURATION'),
+      //     },
+      //   ];
+      // }
       if (this.shouldShowWhatsAppConfiguration) {
         visibleToAllChannelTabs = [
           ...visibleToAllChannelTabs,
