@@ -115,7 +115,15 @@ describe('useAutomation', () => {
       slaPolicies: computedSlaPolicies,
     } = useAutomation();
 
-    expect(computedAgents.value).toEqual(agents);
+    // Agents should include the Citadel AI assistant
+    expect(computedAgents.value).toEqual([
+      ...agents,
+      expect.objectContaining({
+        id: 'assistant_1',
+        name: 'Citadel AI',
+        type: 'assistant',
+      }),
+    ]);
     expect(computedCampaigns.value).toEqual(campaigns);
     expect(computedContacts.value).toEqual(contacts);
     expect(computedInboxes.value).toEqual(inboxes);
@@ -234,6 +242,7 @@ describe('useAutomation', () => {
 
     expect(getActionDropdownValues('add_label')).toEqual(labels);
     expect(getActionDropdownValues('assign_team')).toEqual(teams);
+    // Note: In production, this includes the Citadel AI assistant, but the mock returns the fixture
     expect(getActionDropdownValues('assign_agent')).toEqual(agents);
     expect(getActionDropdownValues('send_email_to_team')).toEqual(teams);
     expect(getActionDropdownValues('send_message')).toEqual([]);
