@@ -3,7 +3,8 @@ import { mapGetters } from 'vuex';
 import AddAccountModal from './components/app/AddAccountModal.vue';
 import LoadingState from './components/widgets/LoadingState.vue';
 import NetworkNotification from './components/NetworkNotification.vue';
-import UpdateBanner from './components/app/UpdateBanner.vue';
+// Citadel: Commented out - version check banner hidden
+// import UpdateBanner from './components/app/UpdateBanner.vue';
 import PaymentPendingBanner from './components/app/PaymentPendingBanner.vue';
 import PendingEmailVerificationBanner from './components/app/PendingEmailVerificationBanner.vue';
 import vueActionCable from './helper/actionCable';
@@ -28,7 +29,8 @@ export default {
     AddAccountModal,
     LoadingState,
     NetworkNotification,
-    UpdateBanner,
+    // Citadel: Commented out - version check banner hidden
+    // UpdateBanner,
     PaymentPendingBanner,
     WootSnackbarBox,
     PendingEmailVerificationBanner,
@@ -147,7 +149,8 @@ export default {
     class="flex flex-col w-full h-screen min-h-0"
     :dir="isRTL ? 'rtl' : 'ltr'"
   >
-    <UpdateBanner :latest-chatwoot-version="latestChatwootVersion" />
+    <!-- Citadel: Commented out - version check banner hidden -->
+    <!-- <UpdateBanner :latest-chatwoot-version="latestChatwootVersion" /> -->
     <template v-if="currentAccountId">
       <PendingEmailVerificationBanner v-if="hideOnOnboardingView" />
       <PaymentPendingBanner v-if="hideOnOnboardingView" />
