@@ -20,13 +20,30 @@ import {
 export default function useAutomationValues() {
   const getters = useStoreGetters();
   const { t } = useI18n();
-  const agents = useMapGetter('agents/getAgents');
+  const agentsFromStore = useMapGetter('agents/getAgents');
   const campaigns = useMapGetter('campaigns/getAllCampaigns');
   const contacts = useMapGetter('contacts/getContacts');
   const inboxes = useMapGetter('inboxes/getInboxes');
   const labels = useMapGetter('labels/getLabels');
   const teams = useMapGetter('teams/getTeams');
   const slaPolicies = useMapGetter('sla/getSLA');
+
+  // Include Citadel AI Assistant for automations
+  const citadelAssistant = {
+    id: 'assistant_1',
+    uid: 'assistant_1',
+    name: 'Citadel AI',
+    display_name: 'Citadel AI',
+    email: 'assistant@citadel.ai',
+    role: 'assistant',
+    confirmed: true,
+    availability_status: 'online',
+    type: 'assistant',
+  };
+
+  const agents = computed(() => {
+    return [...(agentsFromStore.value || []), citadelAssistant];
+  });
 
   const booleanFilterOptions = computed(() => [
     { id: true, name: t('FILTER.ATTRIBUTE_LABELS.TRUE') },
