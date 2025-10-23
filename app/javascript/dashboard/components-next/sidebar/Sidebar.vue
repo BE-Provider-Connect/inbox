@@ -120,7 +120,7 @@ const newReportRoutes = () => [
 const reportRoutes = computed(() => newReportRoutes());
 
 const menuItems = computed(() => {
-  return [
+  const items = [
     {
       name: 'Inbox',
       label: t('SIDEBAR.INBOX'),
@@ -509,6 +509,21 @@ const menuItems = computed(() => {
       ],
     },
   ];
+
+  // Citadel: Hide Reports, Campaigns, and Agent Bots from navigation
+  return items
+    .filter(item => !['Reports', 'Campaigns'].includes(item.name))
+    .map(item => {
+      if (item.name === 'Settings' && item.children) {
+        return {
+          ...item,
+          children: item.children.filter(
+            child => child.name !== 'Settings Agent Bots'
+          ),
+        };
+      }
+      return item;
+    });
 });
 </script>
 
